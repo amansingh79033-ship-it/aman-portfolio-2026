@@ -1,0 +1,114 @@
+
+import React from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { ExternalLink, Layers, Database, Activity, Zap, Shield, Repeat, Globe } from 'lucide-react';
+
+// Explicitly defining ProjectCard as a React.FC to properly handle reserved props like 'key' in JSX maps
+const ProjectCard: React.FC<{ project: any }> = ({ project }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["17.5deg", "-17.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-17.5deg", "17.5deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateY,
+        rotateX,
+        transformStyle: "preserve-3d",
+      }}
+      className="relative h-96 w-full rounded-3xl bg-gradient-to-br from-white/5 to-white/0 border border-white/10 p-8 cursor-pointer group"
+    >
+      <div style={{ transform: "translateZ(75px)", transformStyle: "preserve-3d" }} className="h-full flex flex-col justify-between">
+        <div>
+          <div className="w-12 h-12 rounded-xl bg-sky-400/20 flex items-center justify-center mb-6 group-hover:bg-sky-400 transition-colors duration-500">
+            {project.icon}
+          </div>
+          <h3 className="text-2xl font-display font-bold text-white mb-2">{project.name}</h3>
+          <p className="text-slate-400 text-sm font-light leading-relaxed">{project.tagline}</p>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-sky-400/60">
+            <span>Market Sector</span>
+            <span className="text-white">{project.sector}</span>
+          </div>
+          <div className="h-[1px] w-full bg-white/5" />
+          <button className="flex items-center space-x-2 text-yellow-100 text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors">
+            <span>View Architecture</span>
+            <ExternalLink size={12} />
+          </button>
+        </div>
+      </div>
+      
+      {/* 3D background element */}
+      <div className="absolute inset-0 bg-sky-400/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-2xl" />
+    </motion.div>
+  );
+};
+
+const ProjectUniverse: React.FC = () => {
+  const projects = [
+    { name: "CuriousMinds.online", tagline: "Flagship Pedagogy Engine. Valuation: 30Cr.", sector: "EdTech / AHI", icon: <Zap className="text-sky-300" /> },
+    { name: "Propsynx.xyz", tagline: "Revolutionizing property synchronization.", sector: "PropTech", icon: <Repeat className="text-sky-300" /> },
+    { name: "Propertyfie.com", tagline: "The future of real estate asset management.", sector: "Real Estate", icon: <Shield className="text-sky-300" /> },
+    { name: "Floww.site", tagline: "Workflow automation for the modern polymath.", sector: "SaaS", icon: <Activity className="text-sky-300" /> },
+    { name: "Metric.wtf", tagline: "No-nonsense data analytics for growth teams.", sector: "Data", icon: <Database className="text-sky-300" /> },
+    { name: "Engine Ocean", tagline: "High-fidelity R&D for maritime systems.", sector: "Logistics", icon: <Layers className="text-sky-300" /> },
+    { name: "ShareU", tagline: "Social referral optimization protocol.", sector: "AdTech", icon: <Globe className="text-sky-300" /> },
+    { name: "AGENTref", tagline: "Intelligent referral routing for high-ticket agents.", sector: "Agency Tech", icon: <Zap className="text-sky-300" /> },
+  ];
+
+  return (
+    <section id="mechanics" className="py-32 px-6 relative z-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-20">
+          <motion.span 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            className="text-yellow-100 font-display uppercase tracking-[0.4em] text-[10px] font-bold block mb-4"
+          >
+            The Venture Ecosystem
+          </motion.span>
+          <h2 className="text-5xl md:text-7xl font-display font-bold text-white mb-6">
+            Project <span className="text-sky-300">Universe</span>
+          </h2>
+          <p className="text-slate-400 text-lg max-w-xl font-light">
+            A portfolio of lean, high-valuation startups built with a curiosity-first mindset and sovereign technology stacks.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {projects.map((p, i) => (
+            <ProjectCard key={p.name} project={p} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ProjectUniverse;
