@@ -4,7 +4,7 @@ import { FileVideo, FileImage, FileText, Archive, Download, ExternalLink, Search
 import { useStore, Resource } from '../lib/store';
 
 const ResourcesView: React.FC = () => {
-    const resources = useStore(state => state.resources);
+    const resources = useStore(state => state.resources) || [];
     const incrementDownload = useStore(state => state.incrementDownloadCount);
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<'all' | 'video' | 'image' | 'pdf' | 'archive'>('all');

@@ -51,9 +51,15 @@ const App: React.FC = () => {
 
     const timer = setTimeout(() => setIsLoaded(true), 1000);
 
+    const handleViewChange = (e: any) => {
+      if (e.detail) setCurrentView(e.detail);
+    };
+    window.addEventListener('change-view', handleViewChange);
+
     return () => {
       clearTimeout(timer);
       lenis.destroy();
+      window.removeEventListener('change-view', handleViewChange);
     };
   }, []);
 

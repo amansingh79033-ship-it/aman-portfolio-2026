@@ -364,7 +364,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                                {useStore.getState().showcaseItems.map((item, index) => (
+                                {(useStore.getState().showcaseItems || []).map((item, index) => (
                                     <MediaCard
                                         key={item.id}
                                         id={item.id}
@@ -427,7 +427,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
-                                {useStore.getState().resources.map((resource) => (
+                                {(useStore.getState().resources || []).map((resource) => (
                                     <div key={resource.id} className="glass p-6 rounded-2xl border-white/5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
                                         <div className="flex items-center gap-6">
                                             <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">

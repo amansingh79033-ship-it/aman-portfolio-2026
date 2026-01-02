@@ -26,6 +26,13 @@ export interface Resource {
     uploadedAt: number;
 }
 
+export interface VoiceMessage {
+    id: string;
+    audioUrl: string;
+    duration: number;
+    timestamp: number;
+}
+
 interface AppState {
     visits: Visit[];
     messages: VoiceMessage[];
@@ -37,7 +44,7 @@ interface AppState {
     freezeIp: (ip: string) => void;
     unfreezeIp: (ip: string) => void;
     isIpFrozen: (ip: string) => boolean;
-    setShowcaseImage: (type: 'profile' | 'project1' | 'project2', base64: string) => void;
+    setShowcaseImage: (id: string, base64: string) => void;
     addShowcaseFrame: (image: string, title: string) => void;
     removeShowcaseFrame: (id: string) => void;
     reorderShowcase: (startIndex: number, endIndex: number) => void;
@@ -85,9 +92,9 @@ export const useStore = create<AppState>()(
                 visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'active' } : v)
             })),
             isIpFrozen: (ip) => get().frozenIps.includes(ip),
-            setShowcaseImage: (type, base64) => set((state) => ({
+            setShowcaseImage: (id, base64) => set((state) => ({
                 showcaseItems: state.showcaseItems.map(item =>
-                    item.id === type ? { ...item, image: base64 } : item
+                    item.id === id ? { ...item, image: base64 } : item
                 )
             })),
             addShowcaseFrame: (image, title) => set((state) => ({
