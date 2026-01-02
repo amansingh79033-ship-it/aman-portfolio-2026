@@ -40,7 +40,7 @@ const ResourcesView: React.FC = () => {
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">
                         <HardDrive size={14} /> Repository Node v1.0
                     </motion.div>
-                    <h2 className="text-6xl font-display font-bold text-white mb-6">Resource <span className="text-sky-300">Vault.</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-6">Resource <span className="text-sky-300">Vault.</span></h2>
                     <p className="text-slate-500 text-lg leading-relaxed">
                         Definitive technical assets, high-resolution media, and sovereign documentation.
                         Curated for Pro users and ecosystem developers.
@@ -58,7 +58,7 @@ const ResourcesView: React.FC = () => {
                             className="bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-white focus:outline-none focus:border-sky-400/50 transition-all w-full md:w-64"
                         />
                     </div>
-                    <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                    <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar max-w-full">
                         {(['all', 'video', 'pdf', 'archive'] as const).map((f) => (
                             <button
                                 key={f}

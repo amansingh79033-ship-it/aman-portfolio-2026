@@ -79,7 +79,7 @@ const AnalysisView: React.FC = () => {
     <div className="pt-32 pb-20 px-6 min-h-screen max-w-7xl mx-auto relative">
       <div className="flex flex-col lg:flex-row gap-20 items-start">
         <div className="lg:w-1/3 sticky top-32">
-          <h2 className="text-6xl font-display font-bold text-white mb-8 leading-none">Market <br /><span className="text-sky-300">Forensics.</span></h2>
+          <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-none">Market <br /><span className="text-sky-300">Forensics.</span></h2>
           <p className="text-slate-500 leading-relaxed mb-12">
             Utilizing high-level pattern recognition to predict market shifts before they manifest in data.
           </p>
@@ -134,7 +134,7 @@ const AnalysisView: React.FC = () => {
               // OR use a custom event. Let's use a custom event for view switching to avoid state prop drilling.
               window.dispatchEvent(new CustomEvent('change-view', { detail: 'resources' }));
             }}
-            className="group relative h-64 w-full glass rounded-[3rem] border-sky-400/20 hover:border-sky-400/50 transition-all cursor-pointer overflow-hidden flex items-center justify-between px-12"
+            className="group relative h-auto md:h-64 w-full glass rounded-[3rem] border-sky-400/20 hover:border-sky-400/50 transition-all cursor-pointer overflow-hidden flex flex-col md:flex-row items-center justify-between px-8 md:px-12 py-10 md:py-0"
             style={{ perspective: "1000px" }}
           >
             <motion.div

@@ -26,7 +26,7 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
   };
 
   return (
-    <section className="relative h-screen flex flex-col md:flex-row items-center justify-center px-6 text-center md:text-left overflow-hidden gap-10">
+    <section className="relative min-h-screen flex flex-col md:flex-row items-center justify-center px-6 pt-32 pb-20 md:py-0 text-center md:text-left overflow-hidden gap-10 md:gap-20">
       <motion.div
         variants={container}
         initial="hidden"
@@ -110,7 +110,7 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
       >
         <Folder
           color="#38bdf8"
-          size={1.5}
+          size={typeof window !== 'undefined' && window.innerWidth < 768 ? 0.9 : 1.5}
           items={showcaseItems.slice(0, 3).map((item, idx) => (
             item.image ? (
               <img key={item.id} src={item.image} className="w-full h-full object-cover rounded-[10px]" alt={item.title} />

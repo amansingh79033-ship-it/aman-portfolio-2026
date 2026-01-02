@@ -75,6 +75,12 @@ const Folder: React.FC<FolderProps> = ({ color = '#5227FF', size = 1, items = []
     const scaleStyle = { transform: `scale(${size})` };
 
     const getOpenTransform = (index: number) => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        if (isMobile) {
+            if (index === 0) return 'translate(-105%, -60%) rotate(-10deg) scale(1.1)';
+            if (index === 1) return 'translate(5%, -60%) rotate(10deg) scale(1.1)';
+            if (index === 2) return 'translate(-50%, -90%) rotate(5deg) scale(1.1)';
+        }
         if (index === 0) return 'translate(-120%, -70%) rotate(-15deg) scale(1.2)';
         if (index === 1) return 'translate(10%, -70%) rotate(15deg) scale(1.2)';
         if (index === 2) return 'translate(-50%, -100%) rotate(5deg) scale(1.2)';

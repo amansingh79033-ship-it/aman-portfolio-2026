@@ -242,7 +242,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             key="visitors"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="glass rounded-[3rem] border-white/5 overflow-hidden"
+                            className="glass rounded-[2rem] md:rounded-[3rem] border-white/5 overflow-x-auto"
                         >
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -363,7 +363,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                                 {(useStore.getState().showcaseItems || []).map((item, index) => (
                                     <MediaCard
                                         key={item.id}
