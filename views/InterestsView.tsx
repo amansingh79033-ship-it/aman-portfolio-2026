@@ -181,8 +181,8 @@ const InterestsView: React.FC = () => {
                                     key={item.id}
                                     onClick={() => scrollTo(item.id)}
                                     className={`group flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-sm transition-all duration-300 relative overflow-hidden ${isActive
-                                            ? 'text-sky-400 bg-sky-400/[0.08]'
-                                            : 'text-slate-500 hover:text-white hover:bg-white/[0.03]'
+                                        ? 'text-sky-400 bg-sky-400/[0.08]'
+                                        : 'text-slate-500 hover:text-white hover:bg-white/[0.03]'
                                         }`}
                                 >
                                     {isActive && (
@@ -250,7 +250,7 @@ const InterestsView: React.FC = () => {
                         content={
                             <>
                                 <p>Deconstructing physical assets into liquid, programmable truth. Real Estate is the world's largest asset class ($300T+), yet it remains illiquid and gatekept.</p>
-                                <p><strong>Propsynx</strong> demonstrates that by creating a programmable layer of ownership, property rights can move with the velocity of information, reducing settlement times from 30 days to 30 seconds. This unlocks dead capital and democratizes access to high-yield asset classes.</p>
+                                <p><strong>Propsynx</strong> demonstrates that by creating a programmable layer of ownership, property rights can move with the velocity of information, reducing settlement times from 30 days to 30 seconds. One-tap property background verification and deep-dive analysis of the last 100 years.</p>
                                 <ul className="list-disc list-inside space-y-2 mt-4 text-slate-500">
                                     <li>Fractional ownership down to the square millimeter.</li>
                                     <li>Instant collateralization for DeFi protocols.</li>
@@ -273,7 +273,7 @@ const InterestsView: React.FC = () => {
                         content={
                             <>
                                 <p>Optimizing the flow of atoms across the vacuum. As we transition to a multi-planetary species, the logic of supply chains must evolve from 2D maps to 3D orbital mechanics.</p>
-                                <p><strong>Engine Ocean</strong> simulates demand prediction across light-minutes, ensuring that the bottleneck of space colonization is not biology, but logistics. We utilize porkchop plots to optimize for Delta-V efficiency rather than just time-to-destination.</p>
+                                <p><strong>Engine Ocean</strong> is a topic-focused advanced search engine with AI filtering for CuriousMinds Pro users. It simulates demand prediction across light-minutes, ensuring that the bottleneck of space colonization is not biology, but logistics.</p>
                             </>
                         }
                         chart={<ChartScatter />}

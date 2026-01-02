@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingDown, Zap, Calendar, X, BarChart3, Globe, ShieldCheck, Microscope } from 'lucide-react';
+import { TrendingDown, Zap, Calendar, X, BarChart3, Globe, ShieldCheck, Microscope, Cuboid, ArrowRight } from 'lucide-react';
 import Hologram from '../components/Hologram';
+import { useStore } from '../lib/store';
 
 interface Prediction {
   date: string;
@@ -106,8 +107,8 @@ const AnalysisView: React.FC = () => {
                   <Calendar size={14} /> {p.date}
                 </div>
                 <span className={`px-4 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${p.status === 'Verified' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                    p.status === 'In Action' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                      'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                  p.status === 'In Action' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                    'bg-sky-500/10 text-sky-400 border-sky-500/20'
                   }`}>
                   {p.status}
                 </span>
@@ -119,6 +120,50 @@ const AnalysisView: React.FC = () => {
               </div>
             </motion.div>
           ))}
+
+          {/* 3D Resource Parallax Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            onClick={() => {
+              // We'll need to pass setView if we don't use absolute routing, 
+              // but since App uses currentView from its own state, we should trigger it.
+              // For now, we'll assume a global setter or window dispatch if needed, 
+              // but better to use the store if App.tsx listens to it.
+              // Since App.tsx uses local state, I'll update App.tsx to use a store-based view if possible, 
+              // OR use a custom event. Let's use a custom event for view switching to avoid state prop drilling.
+              window.dispatchEvent(new CustomEvent('change-view', { detail: 'resources' }));
+            }}
+            className="group relative h-64 w-full glass rounded-[3rem] border-sky-400/20 hover:border-sky-400/50 transition-all cursor-pointer overflow-hidden flex items-center justify-between px-12"
+            style={{ perspective: "1000px" }}
+          >
+            <motion.div
+              whileHover={{ rotateY: 15, rotateX: -5, scale: 1.02 }}
+              className="flex items-center gap-8 z-10"
+            >
+              <div className="w-20 h-20 bg-sky-400/10 rounded-3xl flex items-center justify-center text-sky-400 border border-sky-400/20 group-hover:bg-sky-400 group-hover:text-black transition-all duration-500 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+                <Cuboid size={40} />
+              </div>
+              <div>
+                <h3 className="text-3xl font-display font-bold text-white mb-2">Resource <span className="text-sky-300">Vault.</span></h3>
+                <p className="text-slate-400 text-sm font-light uppercase tracking-widest">Access exclusive Pro assets & technical manuals</p>
+              </div>
+            </motion.div>
+
+            <div className="flex items-center gap-4 z-10">
+              <div className="text-right hidden md:block">
+                <div className="text-[10px] text-sky-500 font-bold uppercase tracking-widest mb-1">Status: Restricted</div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">1GB+ Capacity Available</div>
+              </div>
+              <div className="w-12 h-12 glass rounded-full flex items-center justify-center text-white group-hover:bg-sky-400 group-hover:text-black transition-all">
+                <ArrowRight size={20} />
+              </div>
+            </div>
+
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-sky-400/5 rounded-full blur-[80px] group-hover:bg-sky-400/10 transition-all" />
+          </motion.div>
         </div>
       </div>
 

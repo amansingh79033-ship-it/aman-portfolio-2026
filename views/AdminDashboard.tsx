@@ -19,7 +19,8 @@ import {
     X,
     ExternalLink
 } from 'lucide-react';
-import { useStore, Visit, VoiceMessage } from '../lib/store';
+import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource } from '../lib/store';
+import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info } from 'lucide-react';
 
 interface AdminDashboardProps {
     onClose?: () => void;
@@ -28,7 +29,7 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources'>('overview');
     const [loginError, setLoginError] = useState(false);
 
     // Store data
@@ -39,6 +40,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         if (password === 'aman2025#') {
             setIsAuthenticated(true);
             setLoginError(false);
+            // Ensure local storage is synced
         } else {
             setLoginError(true);
             setTimeout(() => setLoginError(false), 2000);
@@ -112,7 +114,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
-                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' }
+                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -140,7 +143,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
-                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' }
+                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -342,27 +346,134 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             key="showcase"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="space-y-8"
+                            className="space-y-12"
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <MediaCard
-                                    title="Project Alpha"
-                                    type="project1"
-                                    description="Primary venture visualization layer 0."
-                                />
-                                <MediaCard
-                                    title="Profile Identity"
-                                    type="profile"
-                                    description="Central node visual for the main identity dockets."
-                                />
-                                <MediaCard
-                                    title="Project Beta"
-                                    type="project2"
-                                    description="Secondary venture visualization layer 1."
-                                />
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-display font-bold text-white">Dynamic Showcase Manager</h3>
+                                    <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mt-1">Reorder, Add, or Remove frames with real-time sync</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        useStore.getState().addShowcaseFrame('', 'New Showcase Item');
+                                    }}
+                                    className="bg-sky-400 text-black font-bold uppercase tracking-widest text-[10px] px-8 py-4 rounded-xl flex items-center gap-2 hover:scale-105 transition-transform"
+                                >
+                                    <Plus size={16} /> Add New Frame
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                {useStore.getState().showcaseItems.map((item, index) => (
+                                    <MediaCard
+                                        key={item.id}
+                                        id={item.id}
+                                        title={item.title}
+                                        image={item.image}
+                                        index={index}
+                                        total={useStore.getState().showcaseItems.length}
+                                    />
+                                ))}
                             </div>
                         </motion.div>
                     )}
+
+                    {activeTab === 'resources' && (
+                        <motion.div
+                            key="resources"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="space-y-12"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-display font-bold text-white">Resource Reservoir</h3>
+                                    <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mt-1">1GB+ Capacity // Vercel Blob Integrated</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="glass px-6 py-3 rounded-xl border-white/5 flex items-center gap-3">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Storage Status</div>
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass p-10 rounded-[3rem] border-white/5 border-dashed border-2 flex flex-col items-center justify-center group hover:bg-white/[0.02] transition-colors cursor-pointer relative overflow-hidden">
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            useStore.getState().addResource({
+                                                name: file.name,
+                                                url: event.target?.result as string,
+                                                type: file.type.includes('video') ? 'video' : file.type.includes('image') ? 'image' : file.type.includes('pdf') ? 'pdf' : 'archive',
+                                                size: file.size
+                                            });
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }}
+                                />
+                                <div className="w-20 h-20 bg-sky-400/10 rounded-full flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 transition-transform">
+                                    <Upload size={32} />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-white font-bold uppercase tracking-widest text-xs mb-2">Initiate Secure Upload</p>
+                                    <p className="text-slate-500 text-[9px] uppercase font-medium tracking-widest">Drag & Drop or Click to browse (Max 1GB)</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                {useStore.getState().resources.map((resource) => (
+                                    <div key={resource.id} className="glass p-6 rounded-2xl border-white/5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">
+                                                {resource.type === 'video' ? <Play size={20} /> : <Layout size={20} />}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-white mb-1">{resource.name}</h4>
+                                                <div className="flex items-center gap-4 text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                                                    <span>{(resource.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                                    <span className="w-1 h-1 rounded-full bg-slate-700" />
+                                                    <span>{resource.type}</span>
+                                                    <span className="w-1 h-1 rounded-full bg-slate-700" />
+                                                    <span>{new Date(resource.uploadedAt).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-6">
+                                            <div className="text-right flex items-center gap-4">
+                                                <div className="relative group/tip">
+                                                    <div className="flex flex-col items-end cursor-help">
+                                                        <div className="text-[10px] text-sky-400 font-bold flex items-center gap-1.5 uppercase tracking-widest">
+                                                            <Activity size={10} /> {resource.downloads} Hits
+                                                        </div>
+                                                        <div className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5">Global Reach</div>
+                                                    </div>
+                                                    <div className="absolute bottom-full right-0 mb-4 w-48 p-4 glass rounded-xl border-white/10 opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                                        <p className="text-[9px] text-slate-300 leading-relaxed text-right">
+                                                            Download analytics are tracked in real-time across all browser nodes.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => useStore.getState().removeResource(resource.id)}
+                                                className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
                 </AnimatePresence>
             </main>
         </div>
@@ -384,15 +495,13 @@ const StatCard: React.FC<{ icon: any, label: string, value: string, trend: strin
     </div>
 );
 
-const MediaCard: React.FC<{ title: string, type: 'profile' | 'project1' | 'project2', description: string }> = ({ title, type, description }) => {
-    const { showcaseImages, setShowcaseImage } = useStore();
-    const currentImage = showcaseImages[type];
+const MediaCard: React.FC<{ id: string, title: string, image: string, index: number, total: number }> = ({ id, title, image, index, total }) => {
+    const { setShowcaseImage, removeShowcaseFrame, reorderShowcase } = useStore();
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Compression logic (Simplified canvas resize)
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
@@ -401,7 +510,6 @@ const MediaCard: React.FC<{ title: string, type: 'profile' | 'project1' | 'proje
                 let width = img.width;
                 let height = img.height;
 
-                // Max resolution 1200px
                 if (width > 1200) {
                     height = (1200 / width) * height;
                     width = 1200;
@@ -412,8 +520,8 @@ const MediaCard: React.FC<{ title: string, type: 'profile' | 'project1' | 'proje
                 const ctx = canvas.getContext('2d');
                 ctx?.drawImage(img, 0, 0, width, height);
 
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
-                setShowcaseImage(type, compressedBase64);
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                setShowcaseImage(id as any, compressedBase64);
             };
             img.src = event.target?.result as string;
         };
@@ -421,26 +529,52 @@ const MediaCard: React.FC<{ title: string, type: 'profile' | 'project1' | 'proje
     };
 
     return (
-        <div className="glass p-10 rounded-[2.5rem] border-white/5 hover:border-sky-400/20 transition-all group">
-            <h3 className="text-xl font-display font-bold mb-1">{title}</h3>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">{description}</p>
+        <div className="glass p-8 rounded-[2.5rem] border-white/5 hover:border-sky-400/20 transition-all group relative">
+            <div className="flex justify-between items-start mb-6">
+                <div>
+                    <h3 className="text-lg font-display font-bold text-white mb-1">{title}</h3>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Index: {index + 1} // ID: {id}</p>
+                </div>
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        disabled={index === 0}
+                        onClick={() => reorderShowcase(index, index - 1)}
+                        className="p-2 glass rounded-lg text-slate-500 hover:text-sky-400 disabled:opacity-30"
+                    >
+                        <ArrowUp size={12} />
+                    </button>
+                    <button
+                        disabled={index === total - 1}
+                        onClick={() => reorderShowcase(index, index + 1)}
+                        className="p-2 glass rounded-lg text-slate-500 hover:text-sky-400 disabled:opacity-30"
+                    >
+                        <ArrowDown size={12} />
+                    </button>
+                    <button
+                        onClick={() => removeShowcaseFrame(id)}
+                        className="p-2 glass rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                    >
+                        <Trash2 size={12} />
+                    </button>
+                </div>
+            </div>
 
             <div className="aspect-square rounded-2xl bg-white/5 border border-white/10 overflow-hidden mb-8 relative flex items-center justify-center">
-                {currentImage ? (
-                    <img src={currentImage} className="w-full h-full object-cover" alt={title} />
+                {image ? (
+                    <img src={image} className="w-full h-full object-cover" alt={title} />
                 ) : (
-                    <div className="text-slate-600 font-mono text-[10px] uppercase">Empty Docket</div>
+                    <div className="text-slate-700 font-mono text-[8px] uppercase">Empty Docket</div>
                 )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <label className="cursor-pointer bg-sky-400 text-black p-3 rounded-full hover:scale-110 transition-transform">
-                        <Play size={16} fill="currentColor" />
+                        <Upload size={16} />
                         <input type="file" className="hidden" accept="image/*" onChange={handleFile} />
                     </label>
                 </div>
             </div>
 
-            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] text-center">
-                Reflected in Hero Section // Persistent
+            <p className="text-[8px] text-slate-600 font-bold uppercase tracking-[0.2em] text-center">
+                Real-time Sync Active
             </p>
         </div>
     );

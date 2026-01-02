@@ -10,7 +10,7 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
-  const showcaseImages = useStore(state => state.showcaseImages);
+  const showcaseItems = useStore(state => state.showcaseItems);
 
   const container = {
     hidden: { opacity: 0 },
@@ -111,11 +111,15 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
         <Folder
           color="#38bdf8"
           size={1.5}
-          items={[
-            showcaseImages.profile ? <img src={showcaseImages.profile} className="w-full h-full object-cover rounded-[10px]" alt="Profile" /> : <div className="w-full h-full bg-slate-800 flex items-center justify-center text-[8px] text-white uppercase font-bold">Profile Identity</div>,
-            showcaseImages.project1 ? <img src={showcaseImages.project1} className="w-full h-full object-cover rounded-[10px]" alt="Project 1" /> : <div className="w-full h-full bg-slate-700 flex items-center justify-center text-[8px] text-white uppercase font-bold">Project A</div>,
-            showcaseImages.project2 ? <img src={showcaseImages.project2} className="w-full h-full object-cover rounded-[10px]" alt="Project 2" /> : <div className="w-full h-full bg-slate-600 flex items-center justify-center text-[8px] text-white uppercase font-bold">Project B</div>
-          ]}
+          items={showcaseItems.slice(0, 3).map((item, idx) => (
+            item.image ? (
+              <img key={item.id} src={item.image} className="w-full h-full object-cover rounded-[10px]" alt={item.title} />
+            ) : (
+              <div key={item.id} className={`w-full h-full ${idx === 0 ? 'bg-slate-800' : idx === 1 ? 'bg-slate-700' : 'bg-slate-600'} flex items-center justify-center text-[8px] text-white uppercase font-bold text-center p-2`}>
+                {item.title}
+              </div>
+            )
+          ))}
         />
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-widest text-sky-400/50 animate-pulse whitespace-nowrap">
           Interactive Docket // Hover to Decrypt

@@ -44,7 +44,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
         {
             title: "Unchi Hai Building",
             subtitle: "Sovereign Venture Stack",
-            content: "CuriousMinds (EdTech), Propsynx (PropTech), and Engine Ocean (Search 2.0). A portfolio built on first principles, solving foundational human problems.",
+            content: "CuriousMinds (EdTech), Propsynx (100-Year PropTech Analysis), and Engine Ocean (Topic-Focused Pro Search). A portfolio built on first principles, solving foundational human problems.",
             icon: <Globe size={48} className="text-green-400" />
         },
         {

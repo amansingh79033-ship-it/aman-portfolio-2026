@@ -57,7 +57,7 @@ const ProjectCard: React.FC<{ project: any }> = ({ project }) => {
           )}
           <p className="text-slate-400 text-sm font-light leading-relaxed">{project.tagline}</p>
         </div>
-        
+
         <div className="space-y-4">
           <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-sky-400/60">
             <span>Market Sector</span>
@@ -77,7 +77,7 @@ const ProjectCard: React.FC<{ project: any }> = ({ project }) => {
           )}
         </div>
       </div>
-      
+
       {/* 3D background element */}
       <div className="absolute inset-0 bg-sky-400/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-2xl" />
     </motion.div>
@@ -87,11 +87,11 @@ const ProjectCard: React.FC<{ project: any }> = ({ project }) => {
 const ProjectUniverse: React.FC = () => {
   const projects = [
     { name: "CuriousMinds.online", tagline: "Flagship Pedagogy Engine. Valuation: 30Cr.", sector: "EdTech / AHI", link: "https://curiousminds.online", icon: <Zap className="text-sky-300" /> },
-    { name: "Propsynx.xyz", tagline: "Real-time property background analysis with future capabilities for Karnataka.", sector: "PropTech", link: "https://propsynx.xyz", icon: <Repeat className="text-sky-300" /> },
+    { name: "Propsynx.xyz", tagline: "One-tap property background verification and deep-dive analysis of the last 100 years.", sector: "PropTech", link: "https://propsynx.xyz", icon: <Repeat className="text-sky-300" /> },
     { name: "Propertyfie.com", tagline: "The future of real estate asset management.", sector: "Real Estate", icon: <Shield className="text-sky-300" /> },
     { name: "Floww.site", tagline: "Workflow automation for the modern polymath.", sector: "SaaS", icon: <Activity className="text-sky-300" /> },
     { name: "Metric.wtf", tagline: "No-nonsense data analytics for growth teams.", sector: "Data", icon: <Database className="text-sky-300" /> },
-    { name: "Engine Ocean", tagline: "Advanced search engine for curious minds with difficulty levels, deep dive options, and multi-format results.", sector: "AI / Search", link: "https://engineocean.com", icon: <Layers className="text-sky-300" /> },
+    { name: "Engine Ocean", tagline: "Topic-focused advanced search engine with AI filtering for CuriousMinds Pro users.", sector: "AI / Search", link: "https://engineocean.com", icon: <Layers className="text-sky-300" /> },
     { name: "ShareU", tagline: "Social referral optimization protocol.", sector: "AdTech", icon: <Globe className="text-sky-300" /> },
     { name: "AGENTref", tagline: "Intelligent referral routing for high-ticket agents.", sector: "Agency Tech", icon: <Zap className="text-sky-300" /> },
   ];
@@ -100,7 +100,7 @@ const ProjectUniverse: React.FC = () => {
     <section id="mechanics" className="py-32 px-6 relative z-10">
       <div className="max-w-7xl mx-auto">
         <div className="mb-20">
-          <motion.span 
+          <motion.span
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             className="text-yellow-100 font-display uppercase tracking-[0.4em] text-[10px] font-bold block mb-4"
