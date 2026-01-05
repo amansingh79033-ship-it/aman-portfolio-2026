@@ -24,9 +24,16 @@ const PoemCard: React.FC<{
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
 
-    const poemContent = contentRef.current?.innerText || "";
-    const titleHeader = title ? `${title}. ` : "";
-    const fullText = titleHeader + poemContent;
+    // Targeted extraction to avoid UI text or duplicated titles
+    const textElements = contentRef.current?.querySelectorAll('p');
+    let poemContent = "";
+    if (textElements && textElements.length > 0) {
+      poemContent = Array.from(textElements).map(el => el.innerText).join('\n');
+    } else {
+      poemContent = contentRef.current?.innerText || "";
+    }
+
+    const fullText = title ? `${title}. ${poemContent}` : poemContent;
     const utterance = new SpeechSynthesisUtterance(fullText);
 
     const voices = window.speechSynthesis.getVoices();
@@ -40,8 +47,8 @@ const PoemCard: React.FC<{
     if (selectedVoice) utterance.voice = selectedVoice;
 
     utterance.lang = 'hi-IN';
-    utterance.pitch = gender === 'female' ? 1.0 : 0.85;
-    utterance.rate = 0.75;
+    utterance.pitch = gender === 'female' ? 1.0 : 0.75; // Even lower pitch for 40-year-old resonance
+    utterance.rate = gender === 'male' ? 0.70 : 0.75;  // Slightly slower for male to add weight/gravitas
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => {
