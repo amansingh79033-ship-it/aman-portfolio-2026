@@ -13,6 +13,7 @@ const PoemCard: React.FC<{
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [highlightRange, setHighlightRange] = React.useState<{ start: number; end: number } | null>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(0.70);
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -48,7 +49,7 @@ const PoemCard: React.FC<{
 
     utterance.lang = 'hi-IN';
     utterance.pitch = gender === 'female' ? 1.0 : 0.75; // Even lower pitch for 40-year-old resonance
-    utterance.rate = gender === 'male' ? 0.70 : 0.75;  // Slightly slower for male to add weight/gravitas
+    utterance.rate = playbackSpeed;
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => {
@@ -180,23 +181,37 @@ const PoemCard: React.FC<{
               initial={{ opacity: 0, scale: 0.8, x: 20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20 }}
-              className="absolute right-full mr-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex gap-2 shadow-2xl overflow-hidden"
+              className="absolute right-full mr-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[120px]"
             >
-              <button
-                onClick={() => speak('male')}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
-                title="Men Voice"
-              >
-                <User size={14} /> Men
-              </button>
-              <div className="w-[1px] bg-white/10" />
-              <button
-                onClick={() => speak('female')}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
-                title="Women Voice"
-              >
-                <UserCheck size={14} /> Women
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => speak('male')}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  title="Men Voice"
+                >
+                  <User size={12} /> Men
+                </button>
+                <div className="w-[1px] bg-white/10" />
+                <button
+                  onClick={() => speak('female')}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  title="Women Voice"
+                >
+                  <UserCheck size={12} /> Women
+                </button>
+              </div>
+
+              <div className="border-t border-white/5 flex items-center justify-between p-1">
+                {[0.5, 0.7, 1.0].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setPlaybackSpeed(s)}
+                    className={`px-2 py-1 rounded-md text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -273,14 +288,10 @@ const MindspaceView: React.FC = () => {
           <PoemCard delay={0.1}>
             <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
             <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
-          </PoemCard>
-
-          <PoemCard delay={0.2}>
+            <div className="h-4" />
             <p>पूछते हैं उनसे अकेलेपन की इंतहाँ ?</p>
             <p className="text-sky-200/80">वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
-          </PoemCard>
-
-          <PoemCard delay={0.3}>
+            <div className="h-4" />
             <p>वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
             <p className="text-sky-200/80">कुछ भी था, वो रोने के क़ाबिल ना था।</p>
           </PoemCard>

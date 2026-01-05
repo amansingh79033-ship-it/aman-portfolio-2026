@@ -25,14 +25,12 @@ const Mindspace: React.FC = () => {
             <div className="text-xl md:text-2xl text-slate-300 leading-relaxed space-y-2">
               <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
               <p>मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
-            </div>
-            <div className="text-xl md:text-2xl text-slate-300 leading-relaxed space-y-2">
+              <div className="h-4" />
               <p>पूछते हैं उनसे अकेलेपन की इंतहाँ ?</p>
               <p>वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
-            </div>
-            <div className="text-xl md:text-2xl text-sky-300 leading-relaxed space-y-2">
-              <p>वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
-              <p>कुछ भी था, वो रोने के क़ाबिल ना था।</p>
+              <div className="h-4" />
+              <p className="text-sky-300">वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
+              <p className="text-sky-300">कुछ भी था, वो रोने के क़ाबिल ना था।</p>
             </div>
           </motion.div>
 
