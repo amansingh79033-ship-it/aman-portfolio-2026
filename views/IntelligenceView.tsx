@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Cpu, Zap, Network, ChevronRight, BarChart3, Database } from 'lucide-react';
+import { Brain, Cpu, Zap, Network, ChevronRight, BarChart3, Database, BookOpen } from 'lucide-react';
 import AhiGlobe from '../components/AhiGlobe';
 
 const IntelligenceView: React.FC = () => {
