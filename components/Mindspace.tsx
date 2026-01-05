@@ -20,8 +20,6 @@ const Mindspace: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="space-y-8 text-right font-light"
-          >
             <div className="text-xl md:text-2xl text-slate-300 leading-relaxed space-y-2">
               <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
               <p>मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
