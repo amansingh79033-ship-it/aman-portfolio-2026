@@ -86,7 +86,20 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
           ))}
         </div>
 
-        <button className="hidden md:block border border-sky-400/20 hover:border-sky-400/80 hover:bg-sky-400/5 transition-all text-sky-300 px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-[0.3em]">
+        <button
+          onClick={() => {
+            if (currentView !== 'home') {
+              setView('home');
+              // Small delay to ensure the component is rendered before scrolling
+              setTimeout(() => {
+                document.getElementById('neuralsync')?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            } else {
+              document.getElementById('neuralsync')?.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          className="hidden md:block border border-sky-400/20 hover:border-sky-400/80 hover:bg-sky-400/5 transition-all text-sky-300 px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-[0.3em]"
+        >
           Collaborate
         </button>
 
@@ -127,7 +140,20 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
                 </span>
               </button>
             ))}
-            <button className="mt-8 border border-sky-400/20 text-sky-300 px-8 py-4 rounded-full text-xs font-bold uppercase tracking-[0.3em] w-full">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                if (currentView !== 'home') {
+                  setView('home');
+                  setTimeout(() => {
+                    document.getElementById('neuralsync')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                } else {
+                  document.getElementById('neuralsync')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="mt-8 border border-sky-400/20 text-sky-300 px-8 py-4 rounded-full text-xs font-bold uppercase tracking-[0.3em] w-full"
+            >
               Collaborate
             </button>
           </div>

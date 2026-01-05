@@ -82,7 +82,7 @@ const NeuralSync: React.FC = () => {
     };
 
     return (
-        <section className="py-24 px-6 relative overflow-hidden bg-black">
+        <section id="neuralsync" className="py-24 px-6 relative overflow-hidden bg-black">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div>
                     <motion.div
