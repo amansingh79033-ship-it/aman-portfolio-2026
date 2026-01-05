@@ -206,7 +206,7 @@ const AnalysisView: React.FC = () => {
               </div>
 
               {/* Right: Content */}
-              <div className="flex-1 p-10 md:p-16 overflow-y-auto">
+              <div className="flex-1 p-10 md:p-16 overflow-y-auto custom-scrollbar">
                 <div className="space-y-12">
                   {/* Research */}
                   <div>
