@@ -11,7 +11,7 @@ const PoemCard: React.FC<{
 }> = ({ title, children, className = "", delay = 0, featured = false }) => {
   const [showVoicePicker, setShowVoicePicker] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
-  const cardRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -22,24 +22,26 @@ const PoemCard: React.FC<{
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
 
-    const text = cardRef.current?.innerText || "";
+    // Extract ONLY the poem content, excluding UI buttons and non-poem elements
+    const text = contentRef.current?.innerText || "";
     const utterance = new SpeechSynthesisUtterance(text);
 
-    // Attempt to find a Hindi voice
+    // Attempt to find a robust Hindi/Indian voice
     const voices = window.speechSynthesis.getVoices();
-    const hiVoices = voices.filter(v => v.lang.startsWith('hi'));
+    const hiVoices = voices.filter(v => v.lang.startsWith('hi') || (v.lang.startsWith('en-IN') && gender === 'male'));
 
-    // Select voice based on gender preference
+    // Select voice based on gender preference with fallback
     let selectedVoice = hiVoices.find(v =>
-      gender === 'female' ? v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('google') :
-        v.name.toLowerCase().includes('male')
+      gender === 'female' ? (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('google')) :
+        (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
     ) || hiVoices[0];
 
     if (selectedVoice) utterance.voice = selectedVoice;
 
+    // Crisp 30-year-old tonality optimizations
     utterance.lang = 'hi-IN';
-    utterance.pitch = gender === 'female' ? 1.1 : 0.9;
-    utterance.rate = 0.85;
+    utterance.pitch = gender === 'female' ? 1.0 : 0.85; // Lower pitch for mature male resonance
+    utterance.rate = 0.75; // Slower, more deliberate poetic pace
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -50,7 +52,6 @@ const PoemCard: React.FC<{
 
   return (
     <motion.div
-      ref={cardRef}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
@@ -80,17 +81,18 @@ const PoemCard: React.FC<{
           </motion.button>
         )}
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {showVoicePicker && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, x: 20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20 }}
-              className="absolute right-full mr-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex gap-2 shadow-2xl"
+              className="absolute right-full mr-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex gap-2 shadow-2xl overflow-hidden"
             >
               <button
                 onClick={() => speak('male')}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                title="Men Voice"
               >
                 <User size={14} /> Men
               </button>
@@ -98,6 +100,7 @@ const PoemCard: React.FC<{
               <button
                 onClick={() => speak('female')}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                title="Women Voice"
               >
                 <UserCheck size={14} /> Women
               </button>
@@ -119,7 +122,10 @@ const PoemCard: React.FC<{
           <h4 className="text-xl md:text-2xl font-display text-yellow-100/90 tracking-widest uppercase italic border-l-2 border-yellow-500/50 pl-4">{title}</h4>
         </div>
       )}
-      <div className={`space-y-6 text-slate-300 font-light leading-relaxed text-lg md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-12' : ''}`}>
+      <div 
+        ref={contentRef}
+        className={`space-y-6 text-slate-300 font-light leading-relaxed text-lg md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-12' : ''}`}
+      >
         {children}
       </div>
 

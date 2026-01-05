@@ -367,9 +367,6 @@ const SkillMatrix: React.FC = () => {
                 <div className="inline-block px-4 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-bold uppercase tracking-[0.3em] mb-4 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
                     skillSET
                 </div>
-                <h2 className="text-5xl md:text-7xl font-display font-bold text-white tracking-tight">
-                    Neural <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-purple-400">Constellation</span>
-                </h2>
             </div>
 
             {/* 3D Canvas */}
