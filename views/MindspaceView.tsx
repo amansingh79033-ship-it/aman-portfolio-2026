@@ -13,7 +13,7 @@ const PoemCard: React.FC<{
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [highlightRange, setHighlightRange] = React.useState<{ start: number; end: number } | null>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const [playbackSpeed, setPlaybackSpeed] = React.useState(0.70);
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(0.85);
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -40,15 +40,20 @@ const PoemCard: React.FC<{
     const voices = window.speechSynthesis.getVoices();
     const hiVoices = voices.filter(v => v.lang.startsWith('hi') || (v.lang.startsWith('en-IN') && gender === 'male'));
 
-    let selectedVoice = hiVoices.find(v =>
-      gender === 'female' ? (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('google')) :
-        (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
-    ) || hiVoices[0];
+    let selectedVoice = hiVoices.find(v => {
+      const name = v.name.toLowerCase();
+      if (gender === 'male') {
+        return name.includes('male') || name.includes('david') || name.includes('ravi') || name.includes('mark') || name.includes('guy');
+      } else {
+        return name.includes('female') || name.includes('google') || name.includes('heera') || name.includes('zira');
+      }
+    }) || hiVoices[0];
 
     if (selectedVoice) utterance.voice = selectedVoice;
 
     utterance.lang = 'hi-IN';
-    utterance.pitch = gender === 'female' ? 1.0 : 0.75; // Even lower pitch for 40-year-old resonance
+    // For a 40-year-old matured man, we use a slightly lower pitch and steady rate
+    utterance.pitch = gender === 'female' ? 1.0 : 0.85;
     utterance.rate = playbackSpeed;
 
     utterance.onstart = () => setIsSpeaking(true);
@@ -201,8 +206,8 @@ const PoemCard: React.FC<{
                 </button>
               </div>
 
-              <div className="border-t border-white/5 flex items-center justify-between p-1">
-                {[0.5, 0.7, 1.0].map((s) => (
+              <div className="border-t border-white/5 flex items-center justify-between p-1 pt-2">
+                {[0.7, 0.85, 1.0, 1.2].map((s) => (
                   <button
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
