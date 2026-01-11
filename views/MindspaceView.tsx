@@ -41,12 +41,17 @@ const PoemCard: React.FC<{
       document.removeEventListener('mousedown', handleUserInteraction);
     };
 
-    document.addEventListener('touchstart', handleUserInteraction);
-    document.addEventListener('mousedown', handleUserInteraction);
+    // Add touch and mouse event listeners for mobile compatibility
+    document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    document.addEventListener('mousedown', handleUserInteraction, { once: true });
+    
+    // Also handle click events for broader compatibility
+    document.addEventListener('click', handleUserInteraction, { once: true });
 
     return () => {
       document.removeEventListener('touchstart', handleUserInteraction);
       document.removeEventListener('mousedown', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
     };
   }, []);
 
@@ -97,10 +102,17 @@ const PoemCard: React.FC<{
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
     if (textElements && textElements.length > 0) {
-      // Extract text content and add poetic pauses
-      poemContent = Array.from(textElements).map(el => (el as HTMLElement).innerText
-        .replace(/[,.!?;:]/g, ' — ') // Replace punctuation with em-dashes for natural pauses
-        .replace(/\|2\|/g, '') // Remove special formatting characters
+      // Extract text content and handle repetitions indicated by |2|
+      poemContent = Array.from(textElements).map(el => {
+        let text = (el as HTMLElement).innerText;
+        // Check if the line ends with |2| and repeat the line
+        if (text.trim().endsWith('|2|')) {
+          text = text.replace(/\|2\|$/, ''); // Remove the |2| marker
+          return text + '\n' + text; // Repeat the line
+        }
+        return text;
+      }).map(line => 
+        line.replace(/[,.!?;:]/g, ' — ') // Replace punctuation with em-dashes for natural pauses
         .replace(/\s+/g, ' ') // Normalize whitespace
         .replace(/\s*—\s*/g, ' — ') // Ensure proper spacing around em-dashes
       ).join('\n\n\n\n'); // Add extra line breaks for longer pauses between stanzas - more dramatic effect
@@ -112,10 +124,14 @@ const PoemCard: React.FC<{
     const utterance = new SpeechSynthesisUtterance(fullText);
     utteranceRef.current = utterance;
 
-    const voices = window.speechSynthesis.getVoices();
+    // Wait a bit to ensure voices are loaded
+    const allVoices = window.speechSynthesis.getVoices();
     // Filter voices for Hindi/Indian languages
-    const hiVoices = voices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
-
+    const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
+    
+    // If no Hindi voices are available, try to find Indian English voices
+    const indianEnglishVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
+    
     let selectedVoice = null;
     if (gender === 'male') {
       // Prioritize male voices for Hindi/Indian languages that sound more expressive
@@ -126,16 +142,24 @@ const PoemCard: React.FC<{
         v.name.toLowerCase().includes('mark') ||
         v.name.toLowerCase().includes('guy') ||
         v.name.toLowerCase().includes('suresh') ||
-        v.name.toLowerCase().includes('ramesh')
+        v.name.toLowerCase().includes('ramesh') ||
+        v.name.toLowerCase().includes('hindi') ||
+        v.name.toLowerCase().includes('indian')
       );
       
       // If no specific male voice found, try to find a voice with more emotional but firm voice quality
       if (!selectedVoice) {
-        selectedVoice = hiVoices.find(v => 
+        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
           v.name.toLowerCase().includes('standard') ||
           v.name.toLowerCase().includes('premium') ||
-          v.name.toLowerCase().includes('expressive')
+          v.name.toLowerCase().includes('expressive') ||
+          v.name.toLowerCase().includes('enhanced')
         );
+      }
+      
+      // Last resort for male voice
+      if (!selectedVoice) {
+        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('male'));
       }
     } else {
       // Prioritize female voices for Hindi/Indian languages that sound more expressive
@@ -145,36 +169,52 @@ const PoemCard: React.FC<{
         v.name.toLowerCase().includes('shwati') || 
         v.name.toLowerCase().includes('zara') ||
         v.name.toLowerCase().includes('sangeeta') ||
-        v.name.toLowerCase().includes('swathi')
+        v.name.toLowerCase().includes('swathi') ||
+        v.name.toLowerCase().includes('kavya') ||
+        v.name.toLowerCase().includes('hindi') ||
+        v.name.toLowerCase().includes('indian')
       );
       
       // If no specific female voice found, try to find a voice with more emotional quality
       if (!selectedVoice) {
-        selectedVoice = hiVoices.find(v => 
+        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
           v.name.toLowerCase().includes('standard') ||
           v.name.toLowerCase().includes('premium') ||
-          v.name.toLowerCase().includes('expressive')
+          v.name.toLowerCase().includes('expressive') ||
+          v.name.toLowerCase().includes('enhanced')
         );
+      }
+      
+      // Last resort for female voice
+      if (!selectedVoice) {
+        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('female'));
       }
     }
     
     // Fallback to any available Hindi/Indian voice
     if (!selectedVoice) {
-      selectedVoice = hiVoices[0];
+      selectedVoice = [...hiVoices, ...indianEnglishVoices][0];
     }
     
-    // If no Hindi voice found, use any available voice
+    // If no suitable voice found, use any available voice
     if (!selectedVoice) {
-      selectedVoice = voices[0];
+      selectedVoice = allVoices[0];
     }
 
-    if (selectedVoice) utterance.voice = selectedVoice;
-
-    utterance.lang = 'hi-IN';
-    // For poetic delivery, use more expressive parameters
-    utterance.pitch = gender === 'female' ? 0.85 : 0.6; // More expressive pitch for shayar-like delivery
-    utterance.rate = playbackSpeed; // Adjust rate to match selected speed (was playbackSpeed * 0.45 which was too slow)
-    utterance.volume = 0.8; // Slightly higher volume for better clarity
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang || 'hi-IN';
+    } else {
+      utterance.lang = 'hi-IN';
+    }
+    
+    // For more natural Hindi poetic delivery, adjust parameters
+    utterance.pitch = gender === 'female' ? 0.9 : 0.7; // Higher pitch for more expressive delivery
+    utterance.rate = playbackSpeed * 0.9; // Slightly slower for better articulation
+    utterance.volume = 0.85; // Slightly higher volume for better clarity
+    
+    // Add a slight pause before starting for more dramatic effect
+    utterance.pitch = gender === 'female' ? 0.85 : 0.65;
 
     utterance.onstart = () => {
       setIsSpeaking(true);
@@ -214,30 +254,51 @@ const PoemCard: React.FC<{
         // For shayar-like delivery, adjust pitch based on word meaning
         const currentWord = fullText.substring(start, end).toLowerCase();
         
-        // Words that should have more emotional emphasis
-        const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा'];
+        // Expanded list of Hindi/Urdu words that should have more emotional emphasis
+        const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा', 'वक़्त', 'यास', 'उम्मीद', 'नसीहत', 'इबादत', 'मस्जिद', 'मंदिर', 'कब्र', 'तारीफ़', 'तारीख़', 'ज़मीन', 'आसमान', 'तारे', 'तलाश', 'हक़ीक़त', 'ख्वाब', 'बेकसूर', 'गुनाह', 'माफ़', 'कर्ज़', 'जिम्मेदारी', 'खुदा', 'इबादत', 'नमाज़', 'रोज़ा', 'ईमान', 'इंसान', 'जानवर', 'पेड़', 'फूल', 'जंग', 'शांति', 'तलवार', 'बुलंद', 'पाए', 'हसीन', 'जलवे', 'नज़र', 'हुस्न', 'गुलाब', 'बेला', 'सहरा', 'तलाश', 'मिलाप', 'विछोड़', 'बात', 'बातें', 'बातों', 'बातें', 'बात', 'बातों', 'बातें'];
         
         if (emotionalWords.some(word => currentWord.includes(word.toLowerCase()))) {
-          // Increase pitch slightly for emotional words
+          // Increase pitch and add more variation for emotional words
           if (gender === 'female') {
-            utterance.pitch = 0.9 + Math.random() * 0.05;
+            utterance.pitch = 0.95 + Math.random() * 0.1;
+            utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
           } else {
-            utterance.pitch = 0.65 + Math.random() * 0.05;
+            utterance.pitch = 0.75 + Math.random() * 0.1;
+            utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
           }
         } else {
-          // Normal pitch variation
+          // Normal pitch variation for regular words
           if (gender === 'female') {
-            utterance.pitch = 0.8 + Math.random() * 0.05; // Slight pitch variation
+            utterance.pitch = 0.85 + Math.random() * 0.05; // Natural pitch variation
+            utterance.rate = playbackSpeed * 0.9; // Regular speed
           } else {
-            utterance.pitch = 0.55 + Math.random() * 0.05; // Slight pitch variation
+            utterance.pitch = 0.65 + Math.random() * 0.05; // Natural pitch variation
+            utterance.rate = playbackSpeed * 0.9; // Regular speed
           }
         }
       }
-      // Add slight pause at sentence/paragraph boundaries for poetic effect
+      // Add appropriate pauses at sentence/paragraph boundaries for poetic effect
       if (event.name === 'sentence' || event.name === 'paragraph') {
         setTimeout(() => {
-          // Add a brief pause for poetic effect
-        }, 500); // Increased pause for more dramatic effect
+          // Temporarily adjust parameters for pause
+          if (gender === 'female') {
+            utterance.pitch = 0.8;
+          } else {
+            utterance.pitch = 0.6;
+          }
+        }, 100); // Brief pause adjustment
+        
+        // Add a longer pause for paragraph breaks
+        if (event.name === 'paragraph') {
+          setTimeout(() => {
+            // Resume with more dramatic effect after paragraph
+            if (gender === 'female') {
+              utterance.pitch = 0.9;
+            } else {
+              utterance.pitch = 0.7;
+            }
+          }, 300);
+        }
       }
     };
 

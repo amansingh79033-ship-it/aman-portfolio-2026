@@ -14,6 +14,9 @@ const NeuralSync: React.FC = () => {
     const chunksRef = useRef<Blob[]>([]);
     const hoverIntervalRef = useRef<any>(null);
     const recordIntervalRef = useRef<any>(null);
+    
+    // Detect if the device is touch-enabled
+    const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
     const addMessage = useStore(state => state.addMessage);
 
@@ -114,6 +117,8 @@ const NeuralSync: React.FC = () => {
                     <motion.div
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
+                        onTouchStart={() => setIsHovered(true)}
+                        onTouchEnd={() => setIsHovered(false)}
                         className={`relative p-12 rounded-[3.5rem] transition-all duration-500 cursor-pointer overflow-hidden ${isRecording ? 'bg-sky-400/5' : 'glass'
                             } border-sky-400/20`}
                     >
@@ -167,11 +172,19 @@ const NeuralSync: React.FC = () => {
                                         animate={{ opacity: 1 }}
                                         className="space-y-6 flex flex-col items-center"
                                     >
-                                        <div className="p-8 bg-sky-400/10 rounded-full text-sky-400 mb-4 animate-pulse">
+                                        <div className="p-8 bg-sky-400/10 rounded-full text-sky-400 mb-4 animate-pulse" onClick={() => {
+                                              if (isTouchDevice) {
+                                                setIsHovered(true);
+                                                setTimeout(() => {
+                                                  startRecording();
+                                                  setIsHovered(false);
+                                                }, 100);
+                                              }
+                                            }}>
                                             <Mic size={40} />
                                         </div>
                                         <div className="text-slate-400 text-sm font-bold uppercase tracking-[0.3em]">
-                                            Hover to Sync Neural Comms
+                                            {isTouchDevice ? 'Tap' : 'Hover'} to Sync Neural Comms
                                         </div>
                                     </motion.div>
                                 )}
