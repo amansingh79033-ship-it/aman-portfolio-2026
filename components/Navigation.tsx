@@ -16,7 +16,8 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
     { id: 'intelligence', name: 'Intelligence', desc: 'AHI Protocol' },
     { id: 'ventures', name: 'Unchi hai Building', desc: '30Cr Portfolio' },
     { id: 'analysis', name: 'Analysis', desc: 'Forensics' },
-    { id: 'mindspace', name: 'Mindspace', desc: 'Poetry' }
+    { id: 'mindspace', name: 'Mindspace', desc: 'Poetry' },
+    { id: 'feel-alive', name: 'Feel Alive', desc: 'Mind & Consciousness' }
   ];
 
   return (

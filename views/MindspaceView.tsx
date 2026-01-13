@@ -104,253 +104,278 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
     }
 
     const fullText = title ? `${title}.\n\n${poemContent}` : poemContent;
-    const utterance = new SpeechSynthesisUtterance(fullText);
-    utteranceRef.current = utterance;
-
-    // Wait a bit to ensure voices are loaded
-    const allVoices = window.speechSynthesis.getVoices();
-    // Filter voices for Hindi/Indian languages
-    const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
     
-    // If no Hindi voices are available, try to find Indian English voices
-    const indianEnglishVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
-    
-    let selectedVoice = null;
-    if (gender === 'own') {
-      // For 'own' voice, try to find the most standard, neutral voice that sounds like the user
-      // First try to find any voice that might sound like a typical adult
-      selectedVoice = allVoices.find(v => 
-        v.name.toLowerCase().includes('default') ||
-        v.name.toLowerCase().includes('standard') ||
-        v.name.toLowerCase().includes('general') ||
-        v.name.toLowerCase().includes('neutral')
-      );
+    // Mobile-specific handling: Some mobile browsers require user interaction to enable speech synthesis
+    if ('speechSynthesis' in window) {
+      // Wait for voices to be loaded (especially important on mobile)
+      const loadVoices = () => {
+        const allVoices = window.speechSynthesis.getVoices();
+        return allVoices;
+      };
       
-      // If no standard voice found, try any adult-like voice
-      if (!selectedVoice) {
-        selectedVoice = allVoices.find(v => 
-          v.name.toLowerCase().includes('adult') ||
-          v.name.toLowerCase().includes('middle') ||
-          v.name.toLowerCase().includes('normal')
-        );
+      let allVoices = loadVoices();
+      if (allVoices.length === 0) {
+        // If no voices loaded yet, wait for the voiceschanged event
+        window.speechSynthesis.onvoiceschanged = () => {
+          allVoices = loadVoices();
+        };
       }
       
-      // Fallback to any available voice
+      const utterance = new SpeechSynthesisUtterance(fullText);
+      utteranceRef.current = utterance;
+      
+      // Filter voices for Hindi/Indian languages
+      const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
+      
+      // If no Hindi voices are available, try to find Indian English voices
+      const indianEnglishVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
+      
+      let selectedVoice: SpeechSynthesisVoice | null = null;
+      if (gender === 'own') {
+        // For 'own' voice, try to find the most standard, neutral voice that sounds like the user
+        // First try to find any voice that might sound like a typical adult
+        selectedVoice = allVoices.find(v => 
+          v.name.toLowerCase().includes('default') ||
+          v.name.toLowerCase().includes('standard') ||
+          v.name.toLowerCase().includes('general') ||
+          v.name.toLowerCase().includes('neutral')
+        ) || selectedVoice;
+        
+        // If no standard voice found, try any adult-like voice
+        if (!selectedVoice) {
+          selectedVoice = allVoices.find(v => 
+            v.name.toLowerCase().includes('adult') ||
+            v.name.toLowerCase().includes('middle') ||
+            v.name.toLowerCase().includes('normal')
+          ) || selectedVoice;
+        }
+        
+        // Fallback to any available voice
+        if (!selectedVoice) {
+          selectedVoice = allVoices[0] || selectedVoice;
+        }
+      } else if (gender === 'male') {
+        // Prioritize male voices for Hindi/Indian languages that sound more like a mature 35-year-old
+        selectedVoice = hiVoices.find(v => 
+          v.name.toLowerCase().includes('male') || 
+          v.name.toLowerCase().includes('ravi') || 
+          v.name.toLowerCase().includes('david') ||
+          v.name.toLowerCase().includes('mark') ||
+          v.name.toLowerCase().includes('guy') ||
+          v.name.toLowerCase().includes('suresh') ||
+          v.name.toLowerCase().includes('ramesh') ||
+          v.name.toLowerCase().includes('hindi') ||
+          v.name.toLowerCase().includes('indian') ||
+          v.name.toLowerCase().includes('adult') ||
+          v.name.toLowerCase().includes('middle') ||
+          v.name.toLowerCase().includes('aged')
+        ) || selectedVoice;
+        
+        // If no specific mature male voice found, try to find a voice with more emotional but firm voice quality
+        if (!selectedVoice) {
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
+            v.name.toLowerCase().includes('standard') ||
+            v.name.toLowerCase().includes('premium') ||
+            v.name.toLowerCase().includes('expressive') ||
+            v.name.toLowerCase().includes('enhanced') ||
+            v.name.toLowerCase().includes('adult') ||
+            v.name.toLowerCase().includes('middle')
+          ) || selectedVoice;
+        }
+        
+        // Last resort for male voice
+        if (!selectedVoice) {
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('male')) || selectedVoice;
+        }
+      } else {
+        // Prioritize female voices for Hindi/Indian languages that sound more like a mature 35-year-old
+        selectedVoice = hiVoices.find(v => 
+          v.name.toLowerCase().includes('female') || 
+          v.name.toLowerCase().includes('lena') || 
+          v.name.toLowerCase().includes('shwati') || 
+          v.name.toLowerCase().includes('zara') ||
+          v.name.toLowerCase().includes('sangeeta') ||
+          v.name.toLowerCase().includes('swathi') ||
+          v.name.toLowerCase().includes('kavya') ||
+          v.name.toLowerCase().includes('hindi') ||
+          v.name.toLowerCase().includes('indian') ||
+          v.name.toLowerCase().includes('adult') ||
+          v.name.toLowerCase().includes('middle') ||
+          v.name.toLowerCase().includes('aged')
+        ) || selectedVoice;
+        
+        // If no specific mature female voice found, try to find a voice with more emotional quality
+        if (!selectedVoice) {
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
+            v.name.toLowerCase().includes('standard') ||
+            v.name.toLowerCase().includes('premium') ||
+            v.name.toLowerCase().includes('expressive') ||
+            v.name.toLowerCase().includes('enhanced') ||
+            v.name.toLowerCase().includes('adult') ||
+            v.name.toLowerCase().includes('middle')
+          ) || selectedVoice;
+        }
+        
+        // Last resort for female voice
+        if (!selectedVoice) {
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('female')) || selectedVoice;
+        }
+      }
+      
+      // Fallback to any available Hindi/Indian voice
+      if (!selectedVoice) {
+        selectedVoice = [...hiVoices, ...indianEnglishVoices][0] || selectedVoice;
+      }
+      
+      // If no suitable voice found, use any available voice
       if (!selectedVoice) {
         selectedVoice = allVoices[0];
       }
-    } else if (gender === 'male') {
-      // Prioritize male voices for Hindi/Indian languages that sound more like a mature 35-year-old
-      selectedVoice = hiVoices.find(v => 
-        v.name.toLowerCase().includes('male') || 
-        v.name.toLowerCase().includes('ravi') || 
-        v.name.toLowerCase().includes('david') ||
-        v.name.toLowerCase().includes('mark') ||
-        v.name.toLowerCase().includes('guy') ||
-        v.name.toLowerCase().includes('suresh') ||
-        v.name.toLowerCase().includes('ramesh') ||
-        v.name.toLowerCase().includes('hindi') ||
-        v.name.toLowerCase().includes('indian') ||
-        v.name.toLowerCase().includes('adult') ||
-        v.name.toLowerCase().includes('middle') ||
-        v.name.toLowerCase().includes('aged')
-      );
-      
-      // If no specific mature male voice found, try to find a voice with more emotional but firm voice quality
-      if (!selectedVoice) {
-        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
-          v.name.toLowerCase().includes('standard') ||
-          v.name.toLowerCase().includes('premium') ||
-          v.name.toLowerCase().includes('expressive') ||
-          v.name.toLowerCase().includes('enhanced') ||
-          v.name.toLowerCase().includes('adult') ||
-          v.name.toLowerCase().includes('middle')
-        );
-      }
-      
-      // Last resort for male voice
-      if (!selectedVoice) {
-        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('male'));
-      }
-    } else {
-      // Prioritize female voices for Hindi/Indian languages that sound more like a mature 35-year-old
-      selectedVoice = hiVoices.find(v => 
-        v.name.toLowerCase().includes('female') || 
-        v.name.toLowerCase().includes('lena') || 
-        v.name.toLowerCase().includes('shwati') || 
-        v.name.toLowerCase().includes('zara') ||
-        v.name.toLowerCase().includes('sangeeta') ||
-        v.name.toLowerCase().includes('swathi') ||
-        v.name.toLowerCase().includes('kavya') ||
-        v.name.toLowerCase().includes('hindi') ||
-        v.name.toLowerCase().includes('indian') ||
-        v.name.toLowerCase().includes('adult') ||
-        v.name.toLowerCase().includes('middle') ||
-        v.name.toLowerCase().includes('aged')
-      );
-      
-      // If no specific mature female voice found, try to find a voice with more emotional quality
-      if (!selectedVoice) {
-        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
-          v.name.toLowerCase().includes('standard') ||
-          v.name.toLowerCase().includes('premium') ||
-          v.name.toLowerCase().includes('expressive') ||
-          v.name.toLowerCase().includes('enhanced') ||
-          v.name.toLowerCase().includes('adult') ||
-          v.name.toLowerCase().includes('middle')
-        );
-      }
-      
-      // Last resort for female voice
-      if (!selectedVoice) {
-        selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('female'));
-      }
-    }
-    
-    // Fallback to any available Hindi/Indian voice
-    if (!selectedVoice) {
-      selectedVoice = [...hiVoices, ...indianEnglishVoices][0];
-    }
-    
-    // If no suitable voice found, use any available voice
-    if (!selectedVoice) {
-      selectedVoice = allVoices[0];
-    }
 
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang || 'hi-IN';
-    } else {
-      utterance.lang = 'hi-IN';
-    }
-    
-    // For more natural Hindi poetic delivery with mature 35-year-old characteristics, adjust parameters
-    // 35-year-olds typically have more stable, settled voices - not too high, not too low
-    if (gender === 'own') {
-      // For 'own' voice, use more neutral settings that could represent a typical user
-      utterance.pitch = 0.65; // Neutral pitch
-      utterance.rate = playbackSpeed * 0.9; // Standard rate
-    } else {
-      utterance.pitch = gender === 'female' ? 0.75 : 0.55; // More mature pitch for 35-year-old voice
-      utterance.rate = playbackSpeed * 0.85; // Slightly slower for more deliberate, mature delivery
-    }
-    utterance.volume = 0.85; // Slightly higher volume for better clarity
-    
-    // Add a slight pause before starting for more dramatic effect
-    utterance.pitch = gender === 'own' ? 0.65 : (gender === 'female' ? 0.75 : 0.55);
-
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-      // Set initial pitch based on gender for emotional delivery
-      if (gender === 'own') {
-        utterance.pitch = 0.65; // Neutral pitch for 'own' voice
-      } else if (gender === 'female') {
-        utterance.pitch = 0.85;
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang || 'hi-IN';
       } else {
-        utterance.pitch = 0.6;
+        utterance.lang = 'hi-IN';
       }
       
-
-    };
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      setHighlightRange(null);
-      
-
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setHighlightRange(null);
-      
-
-    };
-
-    utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        const start = event.charIndex;
-        // Estimate word length if not provided by browser
-        const end = start + (event.charLength || fullText.slice(start).split(/\s|[,.!]/)[0].length);
-        setHighlightRange({ start, end });
-        
-        // Add dynamic pitch variations based on emotional content
-        // For shayar-like delivery, adjust pitch based on word meaning
-        const currentWord = fullText.substring(start, end).toLowerCase();
-        
-        // Expanded list of Hindi/Urdu words that should have more emotional emphasis
-        const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा', 'वक़्त', 'यास', 'उम्मीद', 'नसीहत', 'इबादत', 'मस्जिद', 'मंदिर', 'कब्र', 'तारीफ़', 'तारीख़', 'ज़मीन', 'आसमान', 'तारे', 'तलाश', 'हक़ीक़त', 'ख्वाब', 'बेकसूर', 'गुनाह', 'माफ़', 'कर्ज़', 'जिम्मेदारी', 'खुदा', 'इबादत', 'नमाज़', 'रोज़ा', 'ईमान', 'इंसान', 'जानवर', 'पेड़', 'फूल', 'जंग', 'शांति', 'तलवार', 'बुलंद', 'पाए', 'हसीन', 'जलवे', 'नज़र', 'हुस्न', 'गुलाब', 'बेला', 'सहरा', 'तलाश', 'मिलाप', 'विछोड़', 'बात', 'बातें', 'बातों', 'बातें', 'बात', 'बातों', 'बातें'];
-        
-        // Check if the current word contains the repetition marker
-        const hasRepetitionMarker = currentWord.includes('।।') || currentWord.includes('||') || currentWord.includes('।।');
-        
-        if (emotionalWords.some(word => currentWord.includes(word.toLowerCase())) || hasRepetitionMarker) {
-          // Increase pitch and add more variation for emotional words
-          if (gender === 'own') {
-            utterance.pitch = 0.75 + Math.random() * 0.05; // More neutral pitch for 'own' voice
-            utterance.rate = playbackSpeed * 0.9; // Standard rate for 'own' voice
-          } else if (gender === 'female') {
-            utterance.pitch = 0.95 + Math.random() * 0.1;
-            utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
-          } else {
-            utterance.pitch = 0.75 + Math.random() * 0.1;
-            utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
-          }
-          
-          // If this is a repeated line marker, add more energy
-          if (hasRepetitionMarker) {
-            // Add more energy for repeated lines
-            utterance.pitch = (gender === 'female' ? 1.1 : 0.9) + Math.random() * 0.1;
-            utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
-          }
-        } else {
-          // Normal pitch variation for regular words
-          if (gender === 'own') {
-            utterance.pitch = 0.65 + Math.random() * 0.05; // Neutral pitch variation for 'own' voice
-            utterance.rate = playbackSpeed * 0.9; // Regular speed
-          } else if (gender === 'female') {
-            utterance.pitch = 0.85 + Math.random() * 0.05; // Natural pitch variation
-            utterance.rate = playbackSpeed * 0.9; // Regular speed
-          } else {
-            utterance.pitch = 0.65 + Math.random() * 0.05; // Natural pitch variation
-            utterance.rate = playbackSpeed * 0.9; // Regular speed
-          }
-        }
+      // For more natural Hindi poetic delivery with mature 35-year-old characteristics, adjust parameters
+      // 35-year-olds typically have more stable, settled voices - not too high, not too low
+      if (gender === 'own') {
+        // For 'own' voice, use more neutral settings that could represent a typical user
+        utterance.pitch = 0.65; // Neutral pitch
+        utterance.rate = playbackSpeed * 0.9; // Standard rate
+      } else {
+        utterance.pitch = gender === 'female' ? 0.75 : 0.55; // More mature pitch for 35-year-old voice
+        utterance.rate = playbackSpeed * 0.85; // Slightly slower for more deliberate, mature delivery
       }
-      // Add appropriate pauses at sentence/paragraph boundaries for poetic effect
-      if (event.name === 'sentence' || event.name === 'paragraph') {
-        // Temporarily adjust parameters for pause
+      utterance.volume = 0.85; // Slightly higher volume for better clarity
+      
+      // Add a slight pause before starting for more dramatic effect
+      utterance.pitch = gender === 'own' ? 0.65 : (gender === 'female' ? 0.75 : 0.55);
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        // Set initial pitch based on gender for emotional delivery
         if (gender === 'own') {
-          utterance.pitch = 0.65; // Neutral for 'own' voice
+          utterance.pitch = 0.65; // Neutral pitch for 'own' voice
         } else if (gender === 'female') {
-          utterance.pitch = 0.8;
+          utterance.pitch = 0.85;
         } else {
           utterance.pitch = 0.6;
         }
         
-        // Check if the current text contains repetition markers
-        const hasRepetitionMarker = event.name === 'paragraph' && fullText.includes('।।');
+      };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setHighlightRange(null);
         
-        // Add a longer pause for paragraph breaks
-        if (event.name === 'paragraph') {
-          // Resume with more dramatic effect after paragraph
-          if (gender === 'own') {
-            utterance.pitch = 0.7; // Neutral for 'own' voice
-          } else if (gender === 'female') {
-            utterance.pitch = 0.9;
-          } else {
-            utterance.pitch = 0.7;
-          }
+      };
+      utterance.onerror = (event) => {
+        console.error('SpeechSynthesis Error:', event.error);
+        setIsSpeaking(false);
+        setHighlightRange(null);
+        
+      };
+
+      utterance.onboundary = (event) => {
+        if (event.name === 'word') {
+          const start = event.charIndex;
+          // Estimate word length if not provided by browser
+          const end = start + (event.charLength || fullText.slice(start).split(/\s|[,.!]/)[0].length);
+          setHighlightRange({ start, end });
           
-          // If this paragraph contains repetition markers, add more energy
-          if (hasRepetitionMarker) {
-            utterance.pitch = (gender === 'female' ? 1.0 : 0.8) + Math.random() * 0.1;
-            utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
+          // Add dynamic pitch variations based on emotional content
+          // For shayar-like delivery, adjust pitch based on word meaning
+          const currentWord = fullText.substring(start, end).toLowerCase();
+          
+          // Expanded list of Hindi/Urdu words that should have more emotional emphasis
+          const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा', 'वक़्त', 'यास', 'उम्मीद', 'नसीहत', 'इबादत', 'मस्जिद', 'मंदिर', 'कब्र', 'तारीफ़', 'तारीख़', 'ज़मीन', 'आसमान', 'तारे', 'तलाश', 'हक़ीक़त', 'ख्वाब', 'बेकसूर', 'गुनाह', 'माफ़', 'कर्ज़', 'जिम्मेदारी', 'खुदा', 'इबादत', 'नमाज़', 'रोज़ा', 'ईमान', 'इंसान', 'जानवर', 'पेड़', 'फूल', 'जंग', 'शांति', 'तलवार', 'बुलंद', 'पाए', 'हसीन', 'जलवे', 'नज़र', 'हुस्न', 'गुलाब', 'बेला', 'सहरा', 'तलाश', 'मिलाप', 'विछोड़', 'बात', 'बातें', 'बातों', 'बातें', 'बात', 'बातों', 'बातें'];
+          
+          // Check if the current word contains the repetition marker
+          const hasRepetitionMarker = currentWord.includes('।।') || currentWord.includes('||') || currentWord.includes('।।');
+          
+          if (emotionalWords.some(word => currentWord.includes(word.toLowerCase())) || hasRepetitionMarker) {
+            // Increase pitch and add more variation for emotional words
+            if (gender === 'own') {
+              utterance.pitch = 0.75 + Math.random() * 0.05; // More neutral pitch for 'own' voice
+              utterance.rate = playbackSpeed * 0.9; // Standard rate for 'own' voice
+            } else if (gender === 'female') {
+              utterance.pitch = 0.95 + Math.random() * 0.1;
+              utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
+            } else {
+              utterance.pitch = 0.75 + Math.random() * 0.1;
+              utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
+            }
+            
+            // If this is a repeated line marker, add more energy
+            if (hasRepetitionMarker) {
+              // Add more energy for repeated lines
+              utterance.pitch = (gender === 'female' ? 1.1 : 0.9) + Math.random() * 0.1;
+              utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
+            }
+          } else {
+            // Normal pitch variation for regular words
+            if (gender === 'own') {
+              utterance.pitch = 0.65 + Math.random() * 0.05; // Neutral pitch variation for 'own' voice
+              utterance.rate = playbackSpeed * 0.9; // Regular speed
+            } else if (gender === 'female') {
+              utterance.pitch = 0.85 + Math.random() * 0.05; // Natural pitch variation
+              utterance.rate = playbackSpeed * 0.9; // Regular speed
+            } else {
+              utterance.pitch = 0.65 + Math.random() * 0.05; // Natural pitch variation
+              utterance.rate = playbackSpeed * 0.9; // Regular speed
+            }
           }
         }
+        // Add appropriate pauses at sentence/paragraph boundaries for poetic effect
+        if (event.name === 'sentence' || event.name === 'paragraph') {
+          // Temporarily adjust parameters for pause
+          if (gender === 'own') {
+            utterance.pitch = 0.65; // Neutral for 'own' voice
+          } else if (gender === 'female') {
+            utterance.pitch = 0.8;
+          } else {
+            utterance.pitch = 0.6;
+          }
+          
+          // Check if the current text contains repetition markers
+          const hasRepetitionMarker = event.name === 'paragraph' && fullText.includes('।।');
+          
+          // Add a longer pause for paragraph breaks
+          if (event.name === 'paragraph') {
+            // Resume with more dramatic effect after paragraph
+            if (gender === 'own') {
+              utterance.pitch = 0.7; // Neutral for 'own' voice
+            } else if (gender === 'female') {
+              utterance.pitch = 0.9;
+            } else {
+              utterance.pitch = 0.7;
+            }
+            
+            // If this paragraph contains repetition markers, add more energy
+            if (hasRepetitionMarker) {
+              utterance.pitch = (gender === 'female' ? 1.0 : 0.8) + Math.random() * 0.1;
+              utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
+            }
+          }
+        }
+      };
+
+      // Mobile browsers may require user gesture to play speech, so catch any errors
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.error('Error during speech synthesis:', error);
+        setIsSpeaking(false);
+        setHighlightRange(null);
       }
-    };
-
-
-    window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speechSynthesis is not supported
+      console.warn('Speech Synthesis not supported in this browser');
+      setIsSpeaking(false);
+      setHighlightRange(null);
+    }
   };
 
   // Helper to render text with highlighting
@@ -402,11 +427,11 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
 
         // Handle specific components or elements
         const sub = renderChildren(subChildren, currentOffset);
-        currentOffset = (sub as any).offset || currentOffset + (child.props.children ? 0 : 0); // Very rough innerText estimation
+        currentOffset = (sub as any).offset || currentOffset + (React.isValidElement(child) ? 0 : 0); // Very rough innerText estimation
 
         // For common elements like p, span, div
         if (typeof child.type === 'string') {
-          return React.cloneElement(child, { ...child.props } as any, sub.elements);
+          return React.cloneElement(child as React.ReactElement<any>, { ...(child as any).props }, sub.elements);
         }
       }
       return child;

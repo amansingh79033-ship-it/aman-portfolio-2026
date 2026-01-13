@@ -35,8 +35,8 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
       >
         <motion.div variants={item} className="mb-4 sm:mb-6 md:mb-10 inline-flex flex-col items-center space-y-1 sm:space-y-2 md:space-y-4 glass px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-2 rounded-full border-sky-400/10">
           <div className="w-2 h-2 bg-yellow-200 rounded-full animate-pulse shadow-[0_0_10px_#fef08a]" />
-          <span className="text-yellow-100 font-display uppercase tracking-[0.25em] sm:tracking-[0.3em] md:tracking-[0.5em] text-[5px] sm:text-[6px] md:text-[8px] font-bold text-center">Personal Scribbles</span>
-          <span className="text-yellow-100 font-display uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.5em] text-[4px] sm:text-[5px] md:text-[8px] font-bold text-center">
+          <span className="text-yellow-100 font-display uppercase tracking-[0.25em] sm:tracking-[0.3em] md:tracking-[0.5em] text-[4px] sm:text-[4.8px] md:text-[6.4px] font-bold text-center">Personal Scribbles</span>
+          <span className="text-yellow-100 font-display uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.5em] text-[3.2px] sm:text-[4px] md:text-[6.4px] font-bold text-center">
             BUILDING THE FUTURE OF HUMAN INTELLIGENCE
           </span>
         </motion.div>
@@ -65,7 +65,7 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
 
         <motion.p
           variants={item}
-          className="text-slate-400 text-sm sm:text-base md:text-xl lg:text-2xl max-w-2xl lg:max-w-3xl font-light leading-relaxed mb-4 sm:mb-6 md:mb-12 px-2 sm:px-4 text-center"
+          className="text-slate-400 text-[0.64rem] sm:text-[0.77rem] md:text-[1.02rem] lg:text-[1.28rem] max-w-2xl lg:max-w-3xl font-light leading-relaxed mb-4 sm:mb-6 md:mb-12 px-2 sm:px-4 text-center"
         >
           A <span className="text-white font-medium">Problem Solver</span> using smart teaching methods and AI tools to unlock the top 1% of human potential.
         </motion.p>
@@ -73,11 +73,11 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 w-full max-w-2xl lg:max-w-3xl">
           <button
             onClick={onExplore}
-            className="group relative bg-sky-400 text-black px-6 sm:px-8 py-2.5 sm:py-3 md:px-10 md:py-4 rounded-full font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] text-[8px] sm:text-[9px] md:text-[10px] overflow-hidden hover:scale-105 transition-transform w-full"
+            className="group relative bg-sky-400 text-black px-6 sm:px-8 py-2.5 sm:py-3 md:px-10 md:py-4 rounded-full font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] text-[6.4px] sm:text-[7.2px] md:text-[8px] overflow-hidden hover:scale-105 transition-transform w-full"
           >
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
-              Explore The Archive <ArrowRight size={10} sm:size={12} md:size={14} className="group-hover:translate-x-1 transition-transform" />
+            <span className="relative z-10 flex items-center justify-center gap-[0.2rem] sm:gap-[0.4rem]">
+              Explore The Archive <ArrowRight size={8} className="sm:size-2.5 md:size-3 group-hover:translate-x-1 transition-transform" />
             </span>
           </button>
 
@@ -86,16 +86,16 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
               const el = document.getElementById('skillset');
               el?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="group relative px-4 sm:px-6 py-2.5 sm:py-3 md:px-8 md:py-4 rounded-full font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] text-[8px] sm:text-[9px] md:text-[10px] border border-white/20 hover:border-sky-400/50 hover:bg-sky-400/10 transition-all text-slate-300 hover:text-white w-full"
+            className="group relative px-4 sm:px-6 py-2.5 sm:py-3 md:px-8 md:py-4 rounded-full font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] text-[6.4px] sm:text-[7.2px] md:text-[8px] border border-white/20 hover:border-sky-400/50 hover:bg-sky-400/10 transition-all text-slate-300 hover:text-white w-full"
           >
             skillSET
           </button>
 
-          <button onClick={onWatchVision} className="flex items-center justify-center gap-2 sm:gap-3 text-white group px-3 sm:px-4 py-1.5 sm:py-2 opacity-80 hover:opacity-100 transition-opacity mt-3 sm:mt-4 md:mt-0">
+          <button onClick={onWatchVision} className="flex items-center justify-center gap-[0.4rem] sm:gap-[0.6rem] text-white group px-3 sm:px-4 py-1.5 sm:py-2 opacity-80 hover:opacity-100 transition-opacity mt-3 sm:mt-4 md:mt-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white/5 transition-all">
-              <Play size={10} sm:size={12} fill="white" />
+              <Play size={8} fill="white" className="sm:size-2.5" />
             </div>
-            <span className="text-[7px] sm:text-[9px] md:text-[10px] uppercase font-bold tracking-widest text-slate-500 group-hover:text-white transition-colors">
+            <span className="text-[5.6px] sm:text-[7.2px] md:text-[8px] uppercase font-bold tracking-widest text-slate-500 group-hover:text-white transition-colors">
               Watch The Vision
             </span>
           </button>
@@ -116,13 +116,13 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
             item.image ? (
               <img key={item.id} src={item.image} className="w-full h-full object-cover rounded-[8px] sm:rounded-[10px]" alt={item.title} />
             ) : (
-              <div key={item.id} className={`w-full h-full ${idx === 0 ? 'bg-slate-800' : idx === 1 ? 'bg-slate-700' : 'bg-slate-600'} flex items-center justify-center text-[7px] sm:text-[8px] text-white uppercase font-bold text-center p-1.5 sm:p-2`}>
+              <div key={item.id} className={`w-full h-full ${idx === 0 ? 'bg-slate-800' : idx === 1 ? 'bg-slate-700' : 'bg-slate-600'} flex items-center justify-center text-[5.6px] sm:text-[6.4px] text-white uppercase font-bold text-center p-1.5 sm:p-2`}>
                 {item.title}
               </div>
             )
           ))}
         />
-        <div className="absolute -bottom-6 sm:-bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 text-[6px] sm:text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-sky-400/50 animate-pulse whitespace-nowrap">
+        <div className="absolute -bottom-6 sm:-bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 text-[4.8px] sm:text-[5.6px] md:text-[6.4px] font-bold uppercase tracking-widest text-sky-400/50 animate-pulse whitespace-nowrap">
           Interactive Docket // Hover to Decrypt
         </div>
       </motion.div>
@@ -130,7 +130,7 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.2 }}
-        className="hidden lg:block absolute bottom-8 sm:bottom-10 left-1/2 transform -translate-x-1/2 text-[8px] sm:text-[10px] font-bold text-slate-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] h-40 border-b border-white/5 pt-4"
+        className="hidden lg:block absolute bottom-8 sm:bottom-10 left-1/2 transform -translate-x-1/2 text-[6.4px] sm:text-[8px] font-bold text-slate-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] h-40 border-b border-white/5 pt-4"
       >
         Scroll For Deep Dive
       </motion.div>
