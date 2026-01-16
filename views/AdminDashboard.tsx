@@ -42,17 +42,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     // Store data
     const { visits, messages, frozenIps, freezeIp, unfreezeIp, showcaseItems, resources, toggleVisitStatus } = useStore();
 
-    // Fetch data from centralized store
+    // Fetch data from centralized store (Server)
     useEffect(() => {
         if (isAuthenticated) {
-            const state = useStore.getState();
-            setDashboardData({
-                visits: state.visits,
-                messages: state.messages,
-                frozenIps: state.frozenIps,
-                showcaseItems: state.showcaseItems,
-                resources: state.resources,
-            });
+            useStore.getState().fetchData();
+        }
+    }, [isAuthenticated]);
+
+    // Polling / Real-time updates (Optional, simple polling for now)
+    useEffect(() => {
+        if (isAuthenticated) {
+            const interval = setInterval(() => {
+                useStore.getState().fetchData();
+            }, 10000);
+            return () => clearInterval(interval);
         }
     }, [isAuthenticated]);
 
@@ -72,13 +75,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         }
     }, [isAuthenticated]);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === 'aman2025#') {
-            setIsAuthenticated(true);
-            setLoginError(false);
-            // Ensure local storage is synced
-        } else {
+        try {
+            const res = await fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setIsAuthenticated(true);
+                setLoginError(false);
+            } else {
+                setLoginError(true);
+                setTimeout(() => setLoginError(false), 2000);
+            }
+        } catch (error) {
             setLoginError(true);
             setTimeout(() => setLoginError(false), 2000);
         }
