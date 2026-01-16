@@ -145,21 +145,51 @@ export const useStore = create<AppState>((set, get) => ({
     isIpFrozen: (ip) => get().frozenIps.includes(ip),
 
     // These remain local/demo for now as per minimal implementation requests or extend pattern above
-    setShowcaseImage: (id, base64) => set((state) => ({
-        showcaseItems: state.showcaseItems.map(item =>
-            item.id === id ? { ...item, image: base64 } : item
-        )
-    })),
-    addShowcaseFrame: (image, title) => set((state) => ({
-        showcaseItems: [...state.showcaseItems, { id: Math.random().toString(36).substr(2, 9), image, title }]
-    })),
-    removeShowcaseFrame: (id) => set((state) => ({
-        showcaseItems: state.showcaseItems.filter(item => item.id !== id)
-    })),
+    // Showcase Actions
+    setShowcaseImage: async (id, base64) => {
+        set((state) => ({
+            showcaseItems: state.showcaseItems.map(item =>
+                item.id === id ? { ...item, image: base64 } : item
+            )
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'setShowcaseImage', payload: { id, image: base64 } })
+        });
+    },
+
+    addShowcaseFrame: async (image, title) => {
+        // Optimistic update
+        const tempId = Math.random().toString(36).substr(2, 9);
+        set((state) => ({
+            showcaseItems: [...state.showcaseItems, { id: tempId, image, title }]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addShowcaseFrame', payload: { image, title } })
+        });
+        // Ideally we'd replace the temp ID with the real one from DB, but for MVP we re-fetch polling
+    },
+
+    removeShowcaseFrame: async (id) => {
+        set((state) => ({
+            showcaseItems: state.showcaseItems.filter(item => item.id !== id)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeShowcaseFrame', payload: { id } })
+        });
+    },
+
     reorderShowcase: (startIndex, endIndex) => set((state) => {
         const items = [...state.showcaseItems];
         const [reorderedItem] = items.splice(startIndex, 1);
         items.splice(endIndex, 0, reorderedItem);
+        // Note: Reorder persistence is not yet implemented on backend for this MVP
         return { showcaseItems: items };
     }),
 
@@ -174,13 +204,39 @@ export const useStore = create<AppState>((set, get) => ({
         }
     },
 
-    addResource: (data) => set((state) => ({
-        resources: [{ ...data, id: Math.random().toString(36).substr(2, 9), downloads: 0, uploadedAt: Date.now() }, ...state.resources]
-    })),
-    removeResource: (id) => set((state) => ({
-        resources: state.resources.filter(r => r.id !== id)
-    })),
-    incrementDownloadCount: (id) => set((state) => ({
-        resources: state.resources.map(r => r.id === id ? { ...r, downloads: r.downloads + 1 } : r)
-    })),
+    // Resource Actions
+    addResource: async (data) => {
+        // Optimistic
+        set((state) => ({
+            resources: [{ ...data, id: 'temp-' + Date.now(), downloads: 0, uploadedAt: Date.now() }, ...state.resources]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addResource', payload: data })
+        });
+    },
+
+    removeResource: async (id) => {
+        set((state) => ({
+            resources: state.resources.filter(r => r.id !== id)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeResource', payload: { id } })
+        });
+    },
+
+    incrementDownloadCount: async (id) => {
+        set((state) => ({
+            resources: state.resources.map(r => r.id === id ? { ...r, downloads: r.downloads + 1 } : r)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
+        });
+    },
 }));
