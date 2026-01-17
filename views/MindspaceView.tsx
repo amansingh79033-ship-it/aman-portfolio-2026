@@ -92,18 +92,34 @@ const PoemCard: React.FC<{
         const trimmedText = text.trim();
         if (trimmedText.match(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/)) {
           text = text.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
-          return text + '. ' + text; // Period for a clean pause
+          return text + (isMobile ? ' ' : '. ') + text;
         }
         return text;
       }).map(line =>
-        line.replace(/[,.!?;:।॥]/g, ' ') // Remove all punctuation to prevent 'comma'/'dot' speaking
-          .replace(/\s+/g, ' ') // Normalize whitespace
-      ).join('. '); // Join with a period for a natural stanza pause
+        line.replace(/[,.!?;:।॥]/g, ' ')
+          .replace(/\s+/g, ' ')
+      ).join(isMobile ? ' \n ' : '. ');
     } else {
       poemContent = (contentRef.current as HTMLElement)?.innerText || "";
     }
 
-    const fullText = title ? `${title}.\n\n${poemContent}` : poemContent;
+    let fullText = title ? `${title} \n ${poemContent}` : poemContent;
+
+    // Clean text for TTS - especially for mobile to prevent "dot", "comma" etc.
+    const cleanTextForTTS = (text: string) => {
+      // Replace Hindi full stops and common punctuation with pauses or spaces
+      let cleaned = text
+        .replace(/[।॥]/g, ' ')
+        .replace(/[,.!?;:]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return cleaned;
+    };
+
+    if (isMobile) {
+      fullText = cleanTextForTTS(fullText);
+    }
+
     console.log('TTS Full Text:', fullText);
 
     // Mobile-specific handling: Some mobile browsers require user interaction to enable speech synthesis
