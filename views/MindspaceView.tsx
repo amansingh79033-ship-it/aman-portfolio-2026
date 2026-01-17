@@ -2,7 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, User, UserCheck, X } from 'lucide-react';
 
-const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
+const PoemCard: React.FC<{
+  setShowRecordingModal?: (show: boolean) => void;
   title?: string;
   children: React.ReactNode;
   className?: string;
@@ -17,7 +18,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1.0);
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [pausePosition, setPausePosition] = React.useState<number>(0);
-  
+
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -50,11 +51,11 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       resumeSpeaking();
       return;
     }
-    
+
     // Special handling for 'own' voice - check if we have recorded voice characteristics
     if (gender === 'own') {
       const voiceCharacteristics = localStorage.getItem('userVoiceCharacteristics');
-      
+
       if (voiceCharacteristics) {
         // We have recorded characteristics, use them directly
         speakActual('own');
@@ -71,10 +72,10 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       }
       return;
     }
-    
+
     speakActual(gender);
   };
-  
+
   const speakActual = (gender: 'male' | 'female' | 'own') => {
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
@@ -85,26 +86,28 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
     if (textElements && textElements.length > 0) {
-      // Extract text content and handle repetitions indicated by ||
+      // Extract text content and handle repetitions indicated by markers like ||, ।।, |2|, etc.
       poemContent = Array.from(textElements).map(el => {
         let text = (el as HTMLElement).innerText;
-        // Check if the line ends with || and repeat the line
-        if (text.trim().endsWith('||')) {
-          text = text.replace(/\|\|$/, ''); // Remove the || marker
+        const trimmedText = text.trim();
+        // Recognition of various repetition markers: ||, ।।, |2|, ।२।, (२), (2)
+        if (trimmedText.match(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/)) {
+          text = text.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
           return text + '\n' + text; // Repeat the line
         }
         return text;
-      }).map(line => 
-        line.replace(/[,.!?;:]/g, ' — ') // Replace punctuation with em-dashes for natural pauses
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .replace(/\s*—\s*/g, ' — ') // Ensure proper spacing around em-dashes
-      ).join('\n\n\n\n'); // Add extra line breaks for longer pauses between stanzas - more dramatic effect
+      }).map(line =>
+        line.replace(/[,.!?;:।॥]/g, ' — ') // Replace punctuation with em-dashes for natural pauses, including Hindi full stops
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .replace(/\s*—\s*/g, ' — ') // Ensure proper spacing around em-dashes
+      ).join('\n\n\n\n'); // Add extra line breaks for longer pauses between stanzas
     } else {
       poemContent = (contentRef.current as HTMLElement)?.innerText || "";
     }
 
     const fullText = title ? `${title}.\n\n${poemContent}` : poemContent;
-    
+    console.log('TTS Full Text:', fullText);
+
     // Mobile-specific handling: Some mobile browsers require user interaction to enable speech synthesis
     if ('speechSynthesis' in window) {
       // Wait for voices to be loaded (especially important on mobile)
@@ -112,7 +115,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
         const allVoices = window.speechSynthesis.getVoices();
         return allVoices;
       };
-      
+
       let allVoices = loadVoices();
       if (allVoices.length === 0) {
         // If no voices loaded yet, wait for the voiceschanged event
@@ -120,45 +123,45 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           allVoices = loadVoices();
         };
       }
-      
+
       const utterance = new SpeechSynthesisUtterance(fullText);
       utteranceRef.current = utterance;
-      
+
       // Filter voices for Hindi/Indian languages
       const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
-      
+
       // If no Hindi voices are available, try to find Indian English voices
       const indianEnglishVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
-      
+
       let selectedVoice: SpeechSynthesisVoice | null = null;
       if (gender === 'own') {
         // For 'own' voice, try to find the most standard, neutral voice that sounds like the user
         // First try to find any voice that might sound like a typical adult
-        selectedVoice = allVoices.find(v => 
+        selectedVoice = allVoices.find(v =>
           v.name.toLowerCase().includes('default') ||
           v.name.toLowerCase().includes('standard') ||
           v.name.toLowerCase().includes('general') ||
           v.name.toLowerCase().includes('neutral')
         ) || selectedVoice;
-        
+
         // If no standard voice found, try any adult-like voice
         if (!selectedVoice) {
-          selectedVoice = allVoices.find(v => 
+          selectedVoice = allVoices.find(v =>
             v.name.toLowerCase().includes('adult') ||
             v.name.toLowerCase().includes('middle') ||
             v.name.toLowerCase().includes('normal')
           ) || selectedVoice;
         }
-        
+
         // Fallback to any available voice
         if (!selectedVoice) {
           selectedVoice = allVoices[0] || selectedVoice;
         }
       } else if (gender === 'male') {
         // Prioritize male voices for Hindi/Indian languages that sound more like a mature 35-year-old
-        selectedVoice = hiVoices.find(v => 
-          v.name.toLowerCase().includes('male') || 
-          v.name.toLowerCase().includes('ravi') || 
+        selectedVoice = hiVoices.find(v =>
+          v.name.toLowerCase().includes('male') ||
+          v.name.toLowerCase().includes('ravi') ||
           v.name.toLowerCase().includes('david') ||
           v.name.toLowerCase().includes('mark') ||
           v.name.toLowerCase().includes('guy') ||
@@ -170,10 +173,10 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           v.name.toLowerCase().includes('middle') ||
           v.name.toLowerCase().includes('aged')
         ) || selectedVoice;
-        
+
         // If no specific mature male voice found, try to find a voice with more emotional but firm voice quality
         if (!selectedVoice) {
-          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v =>
             v.name.toLowerCase().includes('standard') ||
             v.name.toLowerCase().includes('premium') ||
             v.name.toLowerCase().includes('expressive') ||
@@ -182,17 +185,17 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
             v.name.toLowerCase().includes('middle')
           ) || selectedVoice;
         }
-        
+
         // Last resort for male voice
         if (!selectedVoice) {
           selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('male')) || selectedVoice;
         }
       } else {
         // Prioritize female voices for Hindi/Indian languages that sound more like a mature 35-year-old
-        selectedVoice = hiVoices.find(v => 
-          v.name.toLowerCase().includes('female') || 
-          v.name.toLowerCase().includes('lena') || 
-          v.name.toLowerCase().includes('shwati') || 
+        selectedVoice = hiVoices.find(v =>
+          v.name.toLowerCase().includes('female') ||
+          v.name.toLowerCase().includes('lena') ||
+          v.name.toLowerCase().includes('shwati') ||
           v.name.toLowerCase().includes('zara') ||
           v.name.toLowerCase().includes('sangeeta') ||
           v.name.toLowerCase().includes('swathi') ||
@@ -203,10 +206,10 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           v.name.toLowerCase().includes('middle') ||
           v.name.toLowerCase().includes('aged')
         ) || selectedVoice;
-        
+
         // If no specific mature female voice found, try to find a voice with more emotional quality
         if (!selectedVoice) {
-          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
+          selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v =>
             v.name.toLowerCase().includes('standard') ||
             v.name.toLowerCase().includes('premium') ||
             v.name.toLowerCase().includes('expressive') ||
@@ -215,18 +218,18 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
             v.name.toLowerCase().includes('middle')
           ) || selectedVoice;
         }
-        
+
         // Last resort for female voice
         if (!selectedVoice) {
           selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('female')) || selectedVoice;
         }
       }
-      
+
       // Fallback to any available Hindi/Indian voice
       if (!selectedVoice) {
         selectedVoice = [...hiVoices, ...indianEnglishVoices][0] || selectedVoice;
       }
-      
+
       // If no suitable voice found, use any available voice
       if (!selectedVoice) {
         selectedVoice = allVoices[0];
@@ -238,7 +241,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       } else {
         utterance.lang = 'hi-IN';
       }
-      
+
       // For more natural Hindi poetic delivery with mature 35-year-old characteristics, adjust parameters
       // 35-year-olds typically have more stable, settled voices - not too high, not too low
       if (gender === 'own') {
@@ -250,7 +253,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
         utterance.rate = playbackSpeed * 0.85; // Slightly slower for more deliberate, mature delivery
       }
       utterance.volume = 0.85; // Slightly higher volume for better clarity
-      
+
       // Add a slight pause before starting for more dramatic effect
       utterance.pitch = gender === 'own' ? 0.65 : (gender === 'female' ? 0.75 : 0.55);
 
@@ -264,18 +267,18 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
         } else {
           utterance.pitch = 0.6;
         }
-        
+
       };
       utterance.onend = () => {
         setIsSpeaking(false);
         setHighlightRange(null);
-        
+
       };
       utterance.onerror = (event) => {
         console.error('SpeechSynthesis Error:', event.error);
         setIsSpeaking(false);
         setHighlightRange(null);
-        
+
       };
 
       utterance.onboundary = (event) => {
@@ -284,17 +287,17 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           // Estimate word length if not provided by browser
           const end = start + (event.charLength || fullText.slice(start).split(/\s|[,.!]/)[0].length);
           setHighlightRange({ start, end });
-          
+
           // Add dynamic pitch variations based on emotional content
           // For shayar-like delivery, adjust pitch based on word meaning
           const currentWord = fullText.substring(start, end).toLowerCase();
-          
+
           // Expanded list of Hindi/Urdu words that should have more emotional emphasis
           const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा', 'वक़्त', 'यास', 'उम्मीद', 'नसीहत', 'इबादत', 'मस्जिद', 'मंदिर', 'कब्र', 'तारीफ़', 'तारीख़', 'ज़मीन', 'आसमान', 'तारे', 'तलाश', 'हक़ीक़त', 'ख्वाब', 'बेकसूर', 'गुनाह', 'माफ़', 'कर्ज़', 'जिम्मेदारी', 'खुदा', 'इबादत', 'नमाज़', 'रोज़ा', 'ईमान', 'इंसान', 'जानवर', 'पेड़', 'फूल', 'जंग', 'शांति', 'तलवार', 'बुलंद', 'पाए', 'हसीन', 'जलवे', 'नज़र', 'हुस्न', 'गुलाब', 'बेला', 'सहरा', 'तलाश', 'मिलाप', 'विछोड़', 'बात', 'बातें', 'बातों', 'बातें', 'बात', 'बातों', 'बातें'];
-          
+
           // Check if the current word contains the repetition marker
           const hasRepetitionMarker = currentWord.includes('।।') || currentWord.includes('||') || currentWord.includes('।।');
-          
+
           if (emotionalWords.some(word => currentWord.includes(word.toLowerCase())) || hasRepetitionMarker) {
             // Increase pitch and add more variation for emotional words
             if (gender === 'own') {
@@ -307,7 +310,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
               utterance.pitch = 0.75 + Math.random() * 0.1;
               utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
             }
-            
+
             // If this is a repeated line marker, add more energy
             if (hasRepetitionMarker) {
               // Add more energy for repeated lines
@@ -338,10 +341,10 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           } else {
             utterance.pitch = 0.6;
           }
-          
+
           // Check if the current text contains repetition markers
           const hasRepetitionMarker = event.name === 'paragraph' && fullText.includes('।।');
-          
+
           // Add a longer pause for paragraph breaks
           if (event.name === 'paragraph') {
             // Resume with more dramatic effect after paragraph
@@ -352,7 +355,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
             } else {
               utterance.pitch = 0.7;
             }
-            
+
             // If this paragraph contains repetition markers, add more energy
             if (hasRepetitionMarker) {
               utterance.pitch = (gender === 'female' ? 1.0 : 0.8) + Math.random() * 0.1;
@@ -571,7 +574,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
     </motion.div>
   );
-  
+
 };
 
 const MindspaceView: React.FC = () => {
@@ -580,39 +583,39 @@ const MindspaceView: React.FC = () => {
   const [recordingError, setRecordingError] = React.useState<string | null>(null);
   const [recordedAudio, setRecordedAudio] = React.useState<Blob | null>(null);
   const [isRecording, setIsRecording] = React.useState(false);
-  
+
   // Function to initialize recording
   const startRecording = async () => {
     try {
       setIsRecording(true);
       setRecordingError(null);
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
-      
+
       const chunks: Blob[] = [];
       mediaRecorder.ondataavailable = (event) => {
         chunks.push(event.data);
       };
-      
+
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         setRecordedAudio(blob);
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
-        
+
         // Apply the recorded voice characteristics to speech synthesis
         applyRecordedVoiceToSynthesis(blob);
       };
-      
+
       mediaRecorder.onerror = (event) => {
         setIsRecording(false);
         setRecordingError('Recording failed. Please check your microphone permissions.');
         stream.getTracks().forEach(track => track.stop());
       };
-      
+
       mediaRecorder.start();
-      
+
       // Automatically stop after 5 seconds
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
@@ -625,20 +628,20 @@ const MindspaceView: React.FC = () => {
       console.error('Recording error:', err);
     }
   };
-  
+
   // Function to apply recorded voice characteristics to speech synthesis
   const applyRecordedVoiceToSynthesis = async (audioBlob: Blob) => {
     try {
       // In a real implementation, we would analyze the recorded audio
       // to extract voice characteristics (pitch, tone, rhythm, etc.)
       // For now, we'll simulate the process
-      
+
       // Extract voice characteristics from the audio (simulated)
       // In a real implementation, this would involve:
       // - Audio analysis to determine pitch patterns
       // - Frequency analysis
       // - Rhythm and timing analysis
-      
+
       // For simulation purposes, we'll just store the audio characteristics
       // In a real scenario, we would extract these from the recorded audio
       localStorage.setItem('userVoiceCharacteristics', JSON.stringify({
@@ -653,7 +656,7 @@ const MindspaceView: React.FC = () => {
       localStorage.removeItem('userVoiceCharacteristics');
     }
   };
-  
+
   // Function to handle recording error - shows fallback option
   const handleRecordingError = () => {
     setRecordingError(null);
@@ -661,17 +664,17 @@ const MindspaceView: React.FC = () => {
     // We'll just close the modal and proceed with default
     setShowRecordingModal(false);
   };
-  
+
   // Render the recording modal
   const renderRecordingModal = () => {
     if (!showRecordingModal) return null;
-    
+
     return (
       <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 xs:p-4">
         <div className="bg-gray-900 border border-white/10 rounded-xl xs:rounded-2xl p-4 xs:p-6 max-w-[95vw] xs:max-w-md w-full">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg xs:text-xl font-bold text-white">Record Your Voice</h3>
-            <button 
+            <button
               onClick={() => {
                 setShowRecordingModal(false);
                 setRecordingError(null);
@@ -681,7 +684,7 @@ const MindspaceView: React.FC = () => {
               <X size={20} />
             </button>
           </div>
-          
+
           <div className="mb-6">
             <p className="text-gray-300 text-sm xs:text-base mb-3 xs:mb-4">
               Please read the following sample text to help us match your voice characteristics:
@@ -690,7 +693,7 @@ const MindspaceView: React.FC = () => {
               <p className="text-center text-white italic text-sm xs:text-base">"आवाज़ सुनाओ मुझे अपनी, मैं गाऊंगा तुम्हारे अहसास की गाथा।"</p>
             </div>
           </div>
-          
+
           {recordingError && (
             <div className="mb-4 p-2 xs:p-3 bg-red-900/30 border border-red-500/50 rounded-md xs:rounded-lg text-red-300 text-sm">
               {recordingError}
@@ -718,7 +721,7 @@ const MindspaceView: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           <div className="flex flex-col gap-3">
             {!isRecording ? (
               <>
@@ -729,7 +732,7 @@ const MindspaceView: React.FC = () => {
                   <Mic2 size={16} className="xs:size-[18px]" />
                   Start Recording (5 Sec)
                 </button>
-                
+
                 <button
                   onClick={() => {
                     setShowRecordingModal(false);
@@ -754,257 +757,257 @@ const MindspaceView: React.FC = () => {
       </div>
     );
   };
-  
+
   return (
     <>
       {renderRecordingModal()}
       <div className="min-h-screen py-12 xs:py-16 sm:py-32 px-3 xs:px-4 relative max-w-7xl mx-auto">
-      {/* Hero Section */}
-      <div className="text-center mb-20 xs:mb-24 sm:mb-32 relative">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[12vw] xs:text-[15vw] md:text-[18vw] font-display font-bold text-white/[0.02] select-none pointer-events-none"
-        >
-          साहिर
-        </motion.div>
-
-        <div className="relative z-10 space-y-3 xs:space-y-4">
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-3xl xs:text-4xl sm:text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
+        {/* Hero Section */}
+        <div className="text-center mb-20 xs:mb-24 sm:mb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[12vw] xs:text-[15vw] md:text-[18vw] font-display font-bold text-white/[0.02] select-none pointer-events-none"
           >
-            Sikandar
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-sky-400 font-display uppercase tracking-[0.25em] xs:tracking-[0.3em] sm:tracking-[0.4em] text-[8px] xs:text-[10px] sm:text-xs md:text-sm font-bold"
-          >
-            The Poetic Resonance of Aman
-          </motion.p>
-        </div>
-      </div>
+            साहिर
+          </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
-        {/* Intro Verses */}
-        <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
-          <PoemCard delay={0.1}>
-            <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
-            <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।।</p>
+          <div className="relative z-10 space-y-3 xs:space-y-4">
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="text-3xl xs:text-4xl sm:text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
+            >
+              Sikandar
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-sky-400 font-display uppercase tracking-[0.25em] xs:tracking-[0.3em] sm:tracking-[0.4em] text-[8px] xs:text-[10px] sm:text-xs md:text-sm font-bold"
+            >
+              The Poetic Resonance of Aman
+            </motion.p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
+          {/* Intro Verses */}
+          <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
+            <PoemCard delay={0.1}>
+              <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
+              <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।।</p>
+              <div className="h-4" />
+              <p>पूछते हैं उनसे अकेलेपन की इंतहाँ ?</p>
+              <p className="text-sky-200/80">वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
+              <div className="h-4" />
+              <p>वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
+              <p className="text-sky-200/80">कुछ भी था, वो रोने के क़ाबिल ना था।</p>
+            </PoemCard>
+          </div>
+
+          {/* Featured Long Poem */}
+          <PoemCard title="पत्थर के ज़ुबाँ" className="row-span-2" delay={0.4}>
+            <p>जौन तुम्हें कुछ बताना चाहता था,<br /><span className="text-sky-200/80">सफ़र को छोड़ के वो घर आना चाहता था ।</span></p>
+            <p>झुर्रियों को लपेट के मेरी आँखों पर,<br /><span className="text-sky-200/80">नख़ुदा सैलाब छुपाना चाहता था।</span></p>
+            <p>उसने मेरे कंधे पर हाथ रखा ऐसे,<br /><span className="text-sky-200/80">कोई आसमाँ का ठिकाना चाहता था।</span></p>
+            <p>लाज़िमी तो नहीं पर बस शब-ए-फ़िराक़ में,<br /><span className="text-sky-200/80">अपनी ग़लतियों के वाजिब, ग़ुरुर एक आशियाना चाहता था ।</span></p>
+            <p>उसको सरे-आफ़ताब पर बिठा के अमन से दरिया,<br /><span className="text-sky-200/80">दरिया के किनारे में ठिकाना चाहता था।</span></p>
+            <p>नुमाइश की सौख कोई नहीं मुझको ।।<br /><span className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</span></p>
+            <p className="text-sky-200/80">साहिर तो फ़कत एक ज़माना चाहता था।</p>
+            <p>उन दुश्मनों को भी याद रखे मुसल्सल ज़माना,</p>
+            <p><span className="text-sky-200/80">वैरी फ़रेब के बदले मर जाना चाहता था।</span></p>
+            <p>सुनते थका नहीं आरज़ू वो सारे जहाँ की ।।<br /><span className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</span></p>
+            <p className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</p>
+            <p>ये उजड़े हुए घरों को देख के ठहर गया वरना,<br /><span className="text-sky-200/80">वो इन हाथों से अपना घर सजाना चाहता था।</span></p>
+            <p>हर एक को राह में पत्थर दिख रहा है एक,<br /><span className="text-sky-200/80">बेज़ुबा! इन जाने वालों को मनाना चाहता था।</span></p>
+            <p>क़त्ल से पहले का एक ख़त मिला है मुझको.. |2|<br /><span className="text-sky-200/80">ये लटका हुआ हक़ीक़त में, बदल जाना चाहता था ।।</span></p>
+            <p className="text-sky-200/80">ये लटका हुआ, हक़ीक़त में, बदल जाना चाहता था ।।</p>
+          </PoemCard>
+        </div>
+
+        <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
+          <PoemCard title="हमसफ़र" featured>
+            <p>आसमाँ से छिपा के सख़्सियत अपनी ,<br /><span className="text-sky-200/80">सितारों को साहिल हमसफ़र समझते हैं।</span></p>
+            <p>मोहब्बत भी फ़क़त फकीरी है,<br /><span className="text-sky-200/80">ये उनके दिल को अपना घर समझते हैं।</span></p>
+            <p>कहते हैं मुझको ग़लतियाँ सुधारो "अमन",<br /><span className="text-sky-200/80">अपनी परछाई से हमको जो बेख़बर समझते हैं।</span></p>
+            <p>देखते नहीं मुझको लोग अब मुस्कुराते हुए,<br /><span className="text-sky-200/80">ये भीड़ बस उनका हुनर देखते हैं।</span></p>
+            <p>मौत जिनको अज़ीज़ है मुद्दतों से जानी,<br /><span className="text-sky-200/80">उनकी आँखों में देखने से डरते हैं।</span></p>
+            <p>"उन्हें क्या लेना देना तुम्हारे ज़ख्म की गहराइयों से,<br /><span className="text-sky-200/80">इल्ज़ाम दिल पर लगाते है,जो जिगर देखते हैं।</span></p>
+            <p>उनके शहर के लोग कह रहे थे मुझको,<br /><span className="text-sky-200/80">गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं।"</span></p>
+            <p>और,<br />वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।।<br /><span className="text-sky-200/80">ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।</span></p>
+            <p className="mt-4 text-sky-400 font-bold">- अमन</p>
+          </PoemCard>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 xs:gap-6 sm:gap-8 md:gap-12">
+            <PoemCard title="साथ कौन है?">
+              <p>वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br /><span className="text-sky-200/80">वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !</span></p>
+              <div className="h-px bg-white/5 w-full my-4" />
+              <p>वो जिसे आरज़ू सिर्फ़ मेरी हुआ करती थी जाना<br /><span className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</span></p>
+              <p className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</p>
+            </PoemCard>
+
+            <PoemCard title="कौन जाने मोहब्बत">
+              <p>ये कैसे दिखते हैं ज़िंदा लोग मरे हुए?<br /><span className="text-sky-200/80">हमसे पूछते हो? हम अपनी जाँ के पराए हैं।</span></p>
+              <p>ये इतने सारे बिन पगड़ी के लोग? ( पगड़ी - ज़मीर )<br /><span className="text-sky-200/80">ये कौन हैं, ये कहाँ से आए हैं?</span></p>
+              <p>मसला सुनो!! जाँ नहीं निकलती तबीब!! (तबीब- डॉक्टर)<br /><span className="text-sky-200/80">ये महफ़िल में मेरी जाँ, मेरी दवा लूटा के आए हैं!</span></p>
+              <p>उनके बारे में कहानियों में सुना था,<br /><span className="text-sky-200/80">हवाएँ मदहोश लगे, समझना उसने गीले बाल सुखाए हैं।</span></p>
+              <p>और,<br />चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।।<br /><span className="text-sky-200/80">दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!</span></p>
+            </PoemCard>
+          </div>
+        </div>
+
+        <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
+          <PoemCard title="दस्तार" featured>
+            <p>उनको छू कर हवा कहती है मुझसे</p>
+            <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>
+            <p>उनकी आँखों में देखने वाले जाँ हिफ़ाज़त रखना</p>
+            <p className="text-sky-200/80">खुले-आम घूमते हैं ये तलवार दिखाने वाले</p>
+            <p>ये बार-बार ख़्वाबों में उसको ख़्वाब दिखाने वाले</p>
+            <p className="text-sky-200/80">एक क़त्ल करके सो रहे हैं ख़ुद को ज़ार दिखाने वाले</p>
+            <p>उसकी आँखें नम देख के ये मालूम हुआ मुझको</p>
+            <p className="text-sky-200/80">अदा-कार हैं ये फ़रेबी, ख़ुद को अना अफ़गार दिखाने वाले</p>
+            <p>मुझको ज़िंदा समझ कर ज़ेहन से उतारा होगा</p>
+            <p className="text-sky-200/80">मेरी क़ब्र से लिपटे पड़े हैं, मुझको औज़ार दिखाने वाले</p>
+            <p>जो गुलाब दे के गए हैं, काँटे-पसंद लोग मुझको</p>
+            <p className="text-sky-200/80">मुस्कुरा रहे हैं, इस्तिबशार सुनाने वाले</p>
+            <p>एक क़तरा भर कामयाबी न संभले "अमन" जिनसे</p>
+            <p className="text-sky-200/80">शाह आँकते हैं ख़ुद को, मेरे दस्तार बनाने वाले</p>
+            <p>नहीं रख़्श-ए-ख़ौफ़ नहीं, एक नाराज़गी भर है</p>
+            <p className="text-sky-200/80">तुम्हारा नाम नहीं लेते, आफ़ताब के जानकार कहलाने वाले</p>
+            <p>ये क्या तमाशा है मोहब्बत का</p>
+            <p className="text-sky-200/80">मेरा आशिक़ बता रहे हैं मुझको हार के घर जाने वाले</p>
+            <p>और</p>
+            <p>एक क़िस्म के लोग तो होंगे उनसे रब-अता है जिनको</p>
+            <p className="text-sky-200/80">और फिर हम जैसे हैं, आफ़ियत-बेज़ार नज़र आने वाले</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="आइनों के शक़्ल">
+            <p>एक तरफ़ देखा तो उसकी आँखें दिख रही थी</p>
+            <p className="text-sky-200/80">एक तरफ़ सीने में जैसे खंजर उतर रहा था।</p>
+            <p>हमने निकाला दिल अपना हथेली पर रख दिया</p>
+            <p className="text-sky-200/80">मेरी ज़ाँ इसी बात पर वो मुझसे झगड़ रहा था।</p>
+            <p>वो मेरा नाम लेता है ऐसे |2|</p>
+            <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
+            <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
+            <p>फ़क़त एक आदमी था उस आईने के सामने,</p>
+            <p className="text-sky-200/80">आईने में जैसे कोई भीड़ उमड़ रहा था ।</p>
+            <p>ज़ेहन में सोचा था एक शहर रंग का</p>
+            <p className="text-sky-200/80">रंग जो उसकी आँखों से उतर रहा था।</p>
+            <p>और</p>
+            <p>जिसे ज़ेहन से निकालने की ज़हमत है सारी ।2|</p>
+            <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
+            <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="ताका-झाँकी">
+            <p>इन्हें समंदर से मिलना है, और किनारे ढूँढते हैं,</p>
+            <p className="text-sky-200/80">ये ज़मीन पे रहने वाले हैं, जो सितारे ढूँढते हैं।</p>
+            <p>सच पूछो तो अपने गिरेबाँ का पता नहीं इन्हें,</p>
+            <p className="text-sky-200/80">ये, ये जो चाँद में भी दरारें ढूँढते हैं।</p>
+            <p className="mt-4 text-sky-200/80">&#123; Distracted Self love&#125;</p>
+            <p className="mt-4">They long to meet the ocean, those who seek a shore,</p>
+            <p className="text-sky-200/80">Yet they are earthbound souls, chasing stars evermore.</p>
+            <p>Truth be told, they fail to know the land they tread,</p>
+            <p className="text-sky-200/80">For they search for cracks in the moon instead.</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="नई जगह है">
+            <p>नई जगह है,</p>
+            <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
+            <p>लिपटने को कुछ,</p>
+            <p className="text-sky-200/80">एक कोना मेरे गाँव से बस कम लगता है।</p>
+            <p>दिन गुज़रता रहा</p>
+            <p className="text-sky-200/80">एक अंजान ख़याल के साथ,</p>
+            <p>मेरी हँसी को</p>
+            <p className="text-sky-200/80">ये अज़नवी मेरा ज़ख़्म कहता है।</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>जैसे सड़क से उठाया</p>
+            <p className="text-sky-200/80">किसी ग़ैर का हम-ग़म लगता है।</p>
+            <p>किसने मोड़ा है</p>
+            <p className="text-sky-200/80">सच का स्वाद</p>
+            <p>कड़वाहट की ओर,</p>
+            <p className="text-sky-200/80">जो खड़ा है मरहम लिए,</p>
+            <p>वो भी बेरहम लगता है।</p>
+            <p>अजीब सी एक जगह है</p>
+            <p className="text-sky-200/80">शहर नाम का उस तरफ़,</p>
+            <p>वहाँ ख़ुशियाँ जैसे मरा हुआ</p>
+            <p className="text-sky-200/80">कोई वहम लगता है।</p>
+            <p>फिर एक रात</p>
+            <p className="text-sky-200/80">टहलते हुए</p>
+            <p>चाँद को निहारते,</p>
+            <p className="text-sky-200/80">ये सवाल पूछा मन ने…,</p>
+            <p>अच्छा,</p>
+            <p className="text-sky-200/80">एक पत्थर को</p>
+            <p>एक मिसाल होने में,</p>
+            <p className="text-sky-200/80">आख़िर…?</p>
+            <p>कितना ज़नम लगता है?</p>
+            <p className="text-sky-200/80">ज़हन के किसी कोने से</p>
+            <p>चिल्लाती एक आवाज़ आती है—</p>
+            <p className="text-sky-200/80">मरते हैं लोग,</p>
+            <p>पत्थर बेज़ान होते हैं।</p>
+            <p className="text-sky-200/80">पत्थर ही बताएगा</p>
+            <p>मरे रहने में</p>
+            <p className="text-sky-200/80">कितना संयम लगता है?</p>
+            <p>सवाल फिर ये भी कि</p>
+            <p className="text-sky-200/80">अगर मरते हैं लोग</p>
+            <p>झूठी क़समों के</p>
+            <p className="text-sky-200/80">सिरहाने आकर,</p>
+            <p>तो फिर एक जीवन को</p>
+            <p className="text-sky-200/80">जीने भर में</p>
+            <p>ये इतना इल्म</p>
+            <p className="text-sky-200/80">क्यों लगता है?</p>
+            <p>और अचानक</p>
+            <p className="text-sky-200/80">ज़हन शांत।</p>
+            <p>एक कारण,</p>
+            <p className="text-sky-200/80">एक जवाब,</p>
+            <p>और एक कोना ढूँढते हुए,</p>
+            <p className="text-sky-200/80">मानो एक बोझ को</p>
+            <p>एक कंधे से</p>
+            <p className="text-sky-200/80">दूसरे कंधे पर</p>
+            <p>सरियाते हुए</p>
+            <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
+            <p>"अरे!</p>
+            <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
+            <p>कहाँ कोई वहम बचता है।</p>
+            <p className="text-sky-200/80">ना किसी इल्म की है ज़रूरत—</p>
+            <p>सर उठाओ!</p>
+            <p className="text-sky-200/80">क्यों शर्म लगता है?</p>
+            <p>इस जीवन को काटना है</p>
+            <p className="text-sky-200/80">तो सोच के आँगन से</p>
+            <p>निकल जाना—बहार।</p>
+            <p className="text-sky-200/80">पर गर जीना हो,</p>
+            <p>तो सोच से सिमट कर सुनना —</p>
+            <p className="text-sky-200/80">एक टुकड़ा काग़ज़ का,</p>
+            <p>एक क़लम लगता है।</p>
+            <p className="text-sky-200/80">एक सड़क कील का,</p>
+            <p>और बस</p>
+            <p className="text-sky-200/80">इक क़दम लगता है।"</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="Galatfehmi {गलतफहमी}">
+            <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
+            <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
             <div className="h-4" />
-            <p>पूछते हैं उनसे अकेलेपन की इंतहाँ ?</p>
-            <p className="text-sky-200/80">वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
+            <p className="text-sky-200/80">baahon me bharkar samandar puchta hai aman se katra</p>
+            <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
+            <p className="text-sky-200/80">aazad Shah-Anshan !</p>
             <div className="h-4" />
-            <p>वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
-            <p className="text-sky-200/80">कुछ भी था, वो रोने के क़ाबिल ना था।</p>
-          </PoemCard>
-        </div>
-
-        {/* Featured Long Poem */}
-        <PoemCard title="पत्थर के ज़ुबाँ" className="row-span-2" delay={0.4}>
-          <p>जौन तुम्हें कुछ बताना चाहता था,<br /><span className="text-sky-200/80">सफ़र को छोड़ के वो घर आना चाहता था ।</span></p>
-          <p>झुर्रियों को लपेट के मेरी आँखों पर,<br /><span className="text-sky-200/80">नख़ुदा सैलाब छुपाना चाहता था।</span></p>
-          <p>उसने मेरे कंधे पर हाथ रखा ऐसे,<br /><span className="text-sky-200/80">कोई आसमाँ का ठिकाना चाहता था।</span></p>
-          <p>लाज़िमी तो नहीं पर बस शब-ए-फ़िराक़ में,<br /><span className="text-sky-200/80">अपनी ग़लतियों के वाजिब, ग़ुरुर एक आशियाना चाहता था ।</span></p>
-          <p>उसको सरे-आफ़ताब पर बिठा के अमन से दरिया,<br /><span className="text-sky-200/80">दरिया के किनारे में ठिकाना चाहता था।</span></p>
-          <p>नुमाइश की सौख कोई नहीं मुझको ।।<br /><span className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</span></p>
-          <p className="text-sky-200/80">साहिर तो फ़कत एक ज़माना चाहता था।</p>
-          <p>उन दुश्मनों को भी याद रखे मुसल्सल ज़माना,</p>
-          <p><span className="text-sky-200/80">वैरी फ़रेब के बदले मर जाना चाहता था।</span></p>
-          <p>सुनते थका नहीं आरज़ू वो सारे जहाँ की ।।<br /><span className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</span></p>
-          <p className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</p>
-          <p>ये उजड़े हुए घरों को देख के ठहर गया वरना,<br /><span className="text-sky-200/80">वो इन हाथों से अपना घर सजाना चाहता था।</span></p>
-          <p>हर एक को राह में पत्थर दिख रहा है एक,<br /><span className="text-sky-200/80">बेज़ुबा! इन जाने वालों को मनाना चाहता था।</span></p>
-          <p>क़त्ल से पहले का एक ख़त मिला है मुझको.. |2|<br /><span className="text-sky-200/80">ये लटका हुआ हक़ीक़त में, बदल जाना चाहता था ।।</span></p>
-          <p className="text-sky-200/80">ये लटका हुआ, हक़ीक़त में, बदल जाना चाहता था ।।</p>
-        </PoemCard>
-      </div>
-
-      <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
-        <PoemCard title="हमसफ़र" featured>
-          <p>आसमाँ से छिपा के सख़्सियत अपनी ,<br /><span className="text-sky-200/80">सितारों को साहिल हमसफ़र समझते हैं।</span></p>
-          <p>मोहब्बत भी फ़क़त फकीरी है,<br /><span className="text-sky-200/80">ये उनके दिल को अपना घर समझते हैं।</span></p>
-          <p>कहते हैं मुझको ग़लतियाँ सुधारो "अमन",<br /><span className="text-sky-200/80">अपनी परछाई से हमको जो बेख़बर समझते हैं।</span></p>
-          <p>देखते नहीं मुझको लोग अब मुस्कुराते हुए,<br /><span className="text-sky-200/80">ये भीड़ बस उनका हुनर देखते हैं।</span></p>
-          <p>मौत जिनको अज़ीज़ है मुद्दतों से जानी,<br /><span className="text-sky-200/80">उनकी आँखों में देखने से डरते हैं।</span></p>
-          <p>"उन्हें क्या लेना देना तुम्हारे ज़ख्म की गहराइयों से,<br /><span className="text-sky-200/80">इल्ज़ाम दिल पर लगाते है,जो जिगर देखते हैं।</span></p>
-          <p>उनके शहर के लोग कह रहे थे मुझको,<br /><span className="text-sky-200/80">गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं।"</span></p>
-          <p>और,<br />वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।।<br /><span className="text-sky-200/80">ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।</span></p>
-          <p className="mt-4 text-sky-400 font-bold">- अमन</p>
-        </PoemCard>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 xs:gap-6 sm:gap-8 md:gap-12">
-          <PoemCard title="साथ कौन है?">
-            <p>वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br /><span className="text-sky-200/80">वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !</span></p>
-            <div className="h-px bg-white/5 w-full my-4" />
-            <p>वो जिसे आरज़ू सिर्फ़ मेरी हुआ करती थी जाना<br /><span className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</span></p>
-            <p className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</p>
-          </PoemCard>
-
-          <PoemCard title="कौन जाने मोहब्बत">
-            <p>ये कैसे दिखते हैं ज़िंदा लोग मरे हुए?<br /><span className="text-sky-200/80">हमसे पूछते हो? हम अपनी जाँ के पराए हैं।</span></p>
-            <p>ये इतने सारे बिन पगड़ी के लोग? ( पगड़ी - ज़मीर )<br /><span className="text-sky-200/80">ये कौन हैं, ये कहाँ से आए हैं?</span></p>
-            <p>मसला सुनो!! जाँ नहीं निकलती तबीब!! (तबीब- डॉक्टर)<br /><span className="text-sky-200/80">ये महफ़िल में मेरी जाँ, मेरी दवा लूटा के आए हैं!</span></p>
-            <p>उनके बारे में कहानियों में सुना था,<br /><span className="text-sky-200/80">हवाएँ मदहोश लगे, समझना उसने गीले बाल सुखाए हैं।</span></p>
-            <p>और,<br />चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।।<br /><span className="text-sky-200/80">दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!</span></p>
+            <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
+            <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
         </div>
       </div>
-
-      <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
-        <PoemCard title="दस्तार" featured>
-          <p>उनको छू कर हवा कहती है मुझसे</p>
-          <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>
-          <p>उनकी आँखों में देखने वाले जाँ हिफ़ाज़त रखना</p>
-          <p className="text-sky-200/80">खुले-आम घूमते हैं ये तलवार दिखाने वाले</p>
-          <p>ये बार-बार ख़्वाबों में उसको ख़्वाब दिखाने वाले</p>
-          <p className="text-sky-200/80">एक क़त्ल करके सो रहे हैं ख़ुद को ज़ार दिखाने वाले</p>
-          <p>उसकी आँखें नम देख के ये मालूम हुआ मुझको</p>
-          <p className="text-sky-200/80">अदा-कार हैं ये फ़रेबी, ख़ुद को अना अफ़गार दिखाने वाले</p>
-          <p>मुझको ज़िंदा समझ कर ज़ेहन से उतारा होगा</p>
-          <p className="text-sky-200/80">मेरी क़ब्र से लिपटे पड़े हैं, मुझको औज़ार दिखाने वाले</p>
-          <p>जो गुलाब दे के गए हैं, काँटे-पसंद लोग मुझको</p>
-          <p className="text-sky-200/80">मुस्कुरा रहे हैं, इस्तिबशार सुनाने वाले</p>
-          <p>एक क़तरा भर कामयाबी न संभले "अमन" जिनसे</p>
-          <p className="text-sky-200/80">शाह आँकते हैं ख़ुद को, मेरे दस्तार बनाने वाले</p>
-          <p>नहीं रख़्श-ए-ख़ौफ़ नहीं, एक नाराज़गी भर है</p>
-          <p className="text-sky-200/80">तुम्हारा नाम नहीं लेते, आफ़ताब के जानकार कहलाने वाले</p>
-          <p>ये क्या तमाशा है मोहब्बत का</p>
-          <p className="text-sky-200/80">मेरा आशिक़ बता रहे हैं मुझको हार के घर जाने वाले</p>
-          <p>और</p>
-          <p>एक क़िस्म के लोग तो होंगे उनसे रब-अता है जिनको</p>
-          <p className="text-sky-200/80">और फिर हम जैसे हैं, आफ़ियत-बेज़ार नज़र आने वाले</p>
-          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
-        </PoemCard>
-
-        <PoemCard title="आइनों के शक़्ल">
-          <p>एक तरफ़ देखा तो उसकी आँखें दिख रही थी</p>
-          <p className="text-sky-200/80">एक तरफ़ सीने में जैसे खंजर उतर रहा था।</p>
-          <p>हमने निकाला दिल अपना हथेली पर रख दिया</p>
-          <p className="text-sky-200/80">मेरी ज़ाँ इसी बात पर वो मुझसे झगड़ रहा था।</p>
-          <p>वो मेरा नाम लेता है ऐसे |2|</p>
-          <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
-          <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
-          <p>फ़क़त एक आदमी था उस आईने के सामने,</p>
-          <p className="text-sky-200/80">आईने में जैसे कोई भीड़ उमड़ रहा था ।</p>
-          <p>ज़ेहन में सोचा था एक शहर रंग का</p>
-          <p className="text-sky-200/80">रंग जो उसकी आँखों से उतर रहा था।</p>
-          <p>और</p>
-          <p>जिसे ज़ेहन से निकालने की ज़हमत है सारी ।2|</p>
-          <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
-          <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
-          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
-        </PoemCard>
-
-        <PoemCard title="ताका-झाँकी">
-          <p>इन्हें समंदर से मिलना है, और किनारे ढूँढते हैं,</p>
-          <p className="text-sky-200/80">ये ज़मीन पे रहने वाले हैं, जो सितारे ढूँढते हैं।</p>
-          <p>सच पूछो तो अपने गिरेबाँ का पता नहीं इन्हें,</p>
-          <p className="text-sky-200/80">ये, ये जो चाँद में भी दरारें ढूँढते हैं।</p>
-          <p className="mt-4 text-sky-200/80">&#123; Distracted Self love&#125;</p>
-          <p className="mt-4">They long to meet the ocean, those who seek a shore,</p>
-          <p className="text-sky-200/80">Yet they are earthbound souls, chasing stars evermore.</p>
-          <p>Truth be told, they fail to know the land they tread,</p>
-          <p className="text-sky-200/80">For they search for cracks in the moon instead.</p>
-          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
-        </PoemCard>
-
-        <PoemCard title="नई जगह है">
-          <p>नई जगह है,</p>
-          <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
-          <p>लिपटने को कुछ,</p>
-          <p className="text-sky-200/80">एक कोना मेरे गाँव से बस कम लगता है।</p>
-          <p>दिन गुज़रता रहा</p>
-          <p className="text-sky-200/80">एक अंजान ख़याल के साथ,</p>
-          <p>मेरी हँसी को</p>
-          <p className="text-sky-200/80">ये अज़नवी मेरा ज़ख़्म कहता है।</p>
-          <p>वो एक ख़याल</p>
-          <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
-          <p>वो एक ख़याल</p>
-          <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
-          <p>जैसे सड़क से उठाया</p>
-          <p className="text-sky-200/80">किसी ग़ैर का हम-ग़म लगता है।</p>
-          <p>किसने मोड़ा है</p>
-          <p className="text-sky-200/80">सच का स्वाद</p>
-          <p>कड़वाहट की ओर,</p>
-          <p className="text-sky-200/80">जो खड़ा है मरहम लिए,</p>
-          <p>वो भी बेरहम लगता है।</p>
-          <p>अजीब सी एक जगह है</p>
-          <p className="text-sky-200/80">शहर नाम का उस तरफ़,</p>
-          <p>वहाँ ख़ुशियाँ जैसे मरा हुआ</p>
-          <p className="text-sky-200/80">कोई वहम लगता है।</p>
-          <p>फिर एक रात</p>
-          <p className="text-sky-200/80">टहलते हुए</p>
-          <p>चाँद को निहारते,</p>
-          <p className="text-sky-200/80">ये सवाल पूछा मन ने…,</p>
-          <p>अच्छा,</p>
-          <p className="text-sky-200/80">एक पत्थर को</p>
-          <p>एक मिसाल होने में,</p>
-          <p className="text-sky-200/80">आख़िर…?</p>
-          <p>कितना ज़नम लगता है?</p>
-          <p className="text-sky-200/80">ज़हन के किसी कोने से</p>
-          <p>चिल्लाती एक आवाज़ आती है—</p>
-          <p className="text-sky-200/80">मरते हैं लोग,</p>
-          <p>पत्थर बेज़ान होते हैं।</p>
-          <p className="text-sky-200/80">पत्थर ही बताएगा</p>
-          <p>मरे रहने में</p>
-          <p className="text-sky-200/80">कितना संयम लगता है?</p>
-          <p>सवाल फिर ये भी कि</p>
-          <p className="text-sky-200/80">अगर मरते हैं लोग</p>
-          <p>झूठी क़समों के</p>
-          <p className="text-sky-200/80">सिरहाने आकर,</p>
-          <p>तो फिर एक जीवन को</p>
-          <p className="text-sky-200/80">जीने भर में</p>
-          <p>ये इतना इल्म</p>
-          <p className="text-sky-200/80">क्यों लगता है?</p>
-          <p>और अचानक</p>
-          <p className="text-sky-200/80">ज़हन शांत।</p>
-          <p>एक कारण,</p>
-          <p className="text-sky-200/80">एक जवाब,</p>
-          <p>और एक कोना ढूँढते हुए,</p>
-          <p className="text-sky-200/80">मानो एक बोझ को</p>
-          <p>एक कंधे से</p>
-          <p className="text-sky-200/80">दूसरे कंधे पर</p>
-          <p>सरियाते हुए</p>
-          <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
-          <p>"अरे!</p>
-          <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
-          <p>कहाँ कोई वहम बचता है।</p>
-          <p className="text-sky-200/80">ना किसी इल्म की है ज़रूरत—</p>
-          <p>सर उठाओ!</p>
-          <p className="text-sky-200/80">क्यों शर्म लगता है?</p>
-          <p>इस जीवन को काटना है</p>
-          <p className="text-sky-200/80">तो सोच के आँगन से</p>
-          <p>निकल जाना—बहार।</p>
-          <p className="text-sky-200/80">पर गर जीना हो,</p>
-          <p>तो सोच से सिमट कर सुनना —</p>
-          <p className="text-sky-200/80">एक टुकड़ा काग़ज़ का,</p>
-          <p>एक क़लम लगता है।</p>
-          <p className="text-sky-200/80">एक सड़क कील का,</p>
-          <p>और बस</p>
-          <p className="text-sky-200/80">इक क़दम लगता है।"</p>
-          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
-        </PoemCard>
-
-        <PoemCard title="Galatfehmi {गलतफहमी}">
-          <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
-          <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
-          <div className="h-4" />
-          <p className="text-sky-200/80">baahon me bharkar samandar puchta hai aman se katra</p>
-          <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
-          <p className="text-sky-200/80">aazad Shah-Anshan !</p>
-          <div className="h-4" />
-          <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
-          <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
-          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
-        </PoemCard>
-      </div>
-    </div>
-  </>
+    </>
   );
 };
 
