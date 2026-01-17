@@ -18,6 +18,7 @@ const PoemCard: React.FC<{
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1.0);
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [pausePosition, setPausePosition] = React.useState<number>(0);
+  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 
   const stopSpeaking = () => {
@@ -86,21 +87,18 @@ const PoemCard: React.FC<{
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
     if (textElements && textElements.length > 0) {
-      // Extract text content and handle repetitions indicated by markers like ||, ।।, |2|, etc.
       poemContent = Array.from(textElements).map(el => {
         let text = (el as HTMLElement).innerText;
         const trimmedText = text.trim();
-        // Recognition of various repetition markers: ||, ।।, |2|, ।२।, (२), (2)
         if (trimmedText.match(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/)) {
           text = text.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
-          return text + '\n' + text; // Repeat the line
+          return text + '. ' + text; // Period for a clean pause
         }
         return text;
       }).map(line =>
-        line.replace(/[,.!?;:।॥]/g, ' — ') // Replace punctuation with em-dashes for natural pauses, including Hindi full stops
+        line.replace(/[,.!?;:।॥]/g, ' ') // Remove all punctuation to prevent 'comma'/'dot' speaking
           .replace(/\s+/g, ' ') // Normalize whitespace
-          .replace(/\s*—\s*/g, ' — ') // Ensure proper spacing around em-dashes
-      ).join('\n\n\n\n'); // Add extra line breaks for longer pauses between stanzas
+      ).join('. '); // Join with a period for a natural stanza pause
     } else {
       poemContent = (contentRef.current as HTMLElement)?.innerText || "";
     }
@@ -287,6 +285,9 @@ const PoemCard: React.FC<{
           // Estimate word length if not provided by browser
           const end = start + (event.charLength || fullText.slice(start).split(/\s|[,.!]/)[0].length);
           setHighlightRange({ start, end });
+
+          // Disable dynamic tuning on mobile to prevent garbled audio
+          if (isMobile) return;
 
           // Add dynamic pitch variations based on emotional content
           // For shayar-like delivery, adjust pitch based on word meaning
