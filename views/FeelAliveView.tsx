@@ -96,7 +96,7 @@ const FeelAliveView: React.FC = () => {
               />
               <ThoughtDimension
                 dimension="3D"
-                description="Children think beyond three dimensions—time, emotion, and abstract connection. This is why they struggle to express themselves in our limited framework."
+                description="Children think beyond three dimensions time, emotion, and abstract connection. This is why they struggle to express themselves in our limited framework."
                 color="from-sky-500 to-violet-500"
                 highlighted
               />
@@ -115,7 +115,7 @@ const FeelAliveView: React.FC = () => {
             <div className="space-y-8">
               <ObservationCard
                 title="Intuition is Real"
-                description="Sometimes you look at someone and instantly know they are lying. Where does that come from? Intuition. Just like our ancestors traveling without vehicles—how did they know where to go? Intuition."
+                description="Sometimes you look at someone and instantly know they are lying. Where does that come from? Intuition. Just like our ancestors traveling without vehicles how did they know where to go? Intuition."
                 icon={<Compass />}
               />
               <ObservationCard
@@ -146,15 +146,15 @@ const FeelAliveView: React.FC = () => {
               />
               <InfoCard
                 title="The Coming Data Collapse"
-                content="One day, there will be no internet. It will happen suddenly. All information, data, everything will be lost. Then something will appear that can restore it—but in limited quantity, at an immense cost."
+                content="One day, there will be no internet. It will happen suddenly. All information, data, everything will be lost. Then something will appear that can restore it but in limited quantity, at an immense cost."
               />
             </div>
             <ManifestoQuote>
-              "What you see on your laptop, phone, social media—that becomes your intelligence. Without observation and perception, you merely record information and become mechanical—like AI."
+              "What you see on your laptop, phone, social media that becomes your intelligence. Without observation and perception, you merely record information and become mechanical like AI."
             </ManifestoQuote>
           </Section>
 
-          {/* Dual-Process Thinking */}
+          {/* Dual Process Thinking */}
           <Section
             icon={<Lightbulb />}
             title="Two Systems of Thought"
@@ -166,7 +166,7 @@ const FeelAliveView: React.FC = () => {
                 Psychology distinguishes between two systems of thought: <strong className="text-white">System 1</strong>, fast, instinctive, and emotional, and <strong className="text-white">System 2</strong>, slow, analytical, and deliberate.
               </p>
               <p>
-                This dual-process theory reflects our natural cognitive architecture: we generate spontaneous insights (intuition) and deliberate reasoning in parallel. This is what makes human cognition rich and autonomous.
+                This dual process theory reflects our natural cognitive architecture: we generate spontaneous insights (intuition) and deliberate reasoning in parallel. This is what makes human cognition rich and autonomous.
               </p>
             </div>
           </Section>
@@ -182,20 +182,20 @@ const FeelAliveView: React.FC = () => {
                 <h4 className="text-2xl font-bold text-white mb-6">The Problem with Teaching</h4>
                 <div className="space-y-4 text-slate-400 leading-relaxed">
                   <p>
-                    Teaching has been converted into teachers, and teachers bias learning. When something is written—this is success, this is failure, this is the goal—it limits your possibilities. A written goal becomes a cage.
+                    Teaching has been converted into teachers, and teachers bias learning. When something is written this is success, this is failure, this is the goal it limits your possibilities. A written goal becomes a cage.
                   </p>
                   <p>
-                    There should be mentors—gurus—whom you approach to clarify doubts or connect missing dots. But there should be no teachers in the conventional sense.
+                    There should be mentors gurus whom you approach to clarify doubts or connect missing dots. But there should be no teachers in the conventional sense.
                   </p>
                   <p className="text-white italic">
-                    "Learning should be your own. Once you learn something, there should be no third-party involvement in learning."
+                    "Learning should be your own. Once you learn something, there should be no third party involvement in learning."
                   </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
                 <ConceptCard
-                  title="Self-Generated Thoughts"
+                  title="Self Generated Thoughts"
                   description="Random thoughts that come to you naturally are never forgotten. They have emotion, context, and personal meaning."
                   color="emerald"
                 />
@@ -222,7 +222,7 @@ const FeelAliveView: React.FC = () => {
             <div className="glass rounded-3xl p-12 border border-white/5 space-y-8">
               <div className="space-y-6 text-slate-400 text-lg leading-relaxed">
                 <p>
-                  I've spoken to hundreds of people. Ninety-eight out of a hundred <strong className="text-white">hate thinking</strong>. They don't pause for even a second. They speak instantly. While speaking, they frame answers—not thoughtful answers, but reactive ones.
+                  I've spoken to hundreds of people. Ninety-eight out of a hundred <strong className="text-white">hate thinking</strong>. They don't pause for even a second. They speak instantly. While speaking, they frame answers not thoughtful answers, but reactive ones.
                 </p>
                 <p>
                   Why do people have shorter lives today? Because they're always in a hurry. I've seen people not stop for someone trying to cross the road without a zebra crossing.
@@ -413,7 +413,7 @@ const DigitalAmnesiaWarning: React.FC = () => {
           <span className="text-red-400">becomes</span> your intelligence
         </h3>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-          Artificial intelligence is not evolving naturally; it is fed artificially. Call it AI, call it anything—it's shaped by artificial sources.
+          Artificial intelligence is not evolving naturally; it is fed artificially. Call it AI, call it anything it's shaped by artificial sources.
         </p>
       </div>
     </motion.div>
