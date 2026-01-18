@@ -83,42 +83,40 @@ const PoemCard: React.FC<{
     setPausePosition(0);
     setIsPaused(false);
 
-    // Targeted extraction to avoid UI text or duplicated titles
+    // Unified text extraction for consistent audio across all platforms
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
+
     if (textElements && textElements.length > 0) {
       poemContent = Array.from(textElements).map(el => {
         let text = (el as HTMLElement).innerText;
         const trimmedText = text.trim();
+
+        // Handle repetition markers (||, ।।, |2|, etc.)
         if (trimmedText.match(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/)) {
           text = text.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
-          return text + (isMobile ? ' ' : '. ') + text;
+          return text + '  ' + text; // Double space for natural pause
         }
         return text;
       }).map(line =>
+        // Remove all punctuation to prevent literal speaking
         line.replace(/[,.!?;:।॥]/g, ' ')
-          .replace(/\s+/g, ' ')
-      ).join(isMobile ? ' \n ' : '. ');
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim()
+      ).join('  '); // Double space between stanzas
     } else {
       poemContent = (contentRef.current as HTMLElement)?.innerText || "";
     }
 
-    let fullText = title ? `${title} \n ${poemContent}` : poemContent;
+    // Unified text cleaning for all platforms
+    let fullText = title ? `${title}  ${poemContent}` : poemContent;
 
-    // Clean text for TTS - especially for mobile to prevent "dot", "comma" etc.
-    const cleanTextForTTS = (text: string) => {
-      // Replace Hindi full stops and common punctuation with pauses or spaces
-      let cleaned = text
-        .replace(/[।॥]/g, ' ')
-        .replace(/[,.!?;:]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      return cleaned;
-    };
-
-    if (isMobile) {
-      fullText = cleanTextForTTS(fullText);
-    }
+    // Final cleanup to ensure no punctuation is spoken
+    fullText = fullText
+      .replace(/[।॥]/g, ' ')
+      .replace(/[,.!?;:]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
     console.log('TTS Full Text:', fullText);
 
