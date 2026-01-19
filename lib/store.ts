@@ -32,12 +32,22 @@ export interface VoiceMessage {
     timestamp: number;
 }
 
+export interface Song {
+    id: string;
+    title: string;
+    url: string;
+    duration: number;
+    description: string;
+    createdAt: number;
+}
+
 interface AppState {
     visits: Visit[];
     messages: VoiceMessage[];
     frozenIps: string[];
     showcaseItems: ShowcaseItem[];
     resources: Resource[];
+    songs: Song[];
 
     // Actions
     fetchData: () => Promise<void>;
@@ -57,6 +67,10 @@ interface AppState {
     addResource: (resource: Omit<Resource, 'id' | 'downloads' | 'uploadedAt'>) => void;
     removeResource: (id: string) => void;
     incrementDownloadCount: (id: string) => void;
+
+    // Song Actions
+    addSong: (song: Omit<Song, 'id' | 'createdAt'>) => Promise<void>;
+    removeSong: (id: string) => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -65,6 +79,7 @@ export const useStore = create<AppState>((set, get) => ({
     frozenIps: [],
     showcaseItems: [],
     resources: [],
+    songs: [],
 
     fetchData: async () => {
         try {
@@ -76,7 +91,8 @@ export const useStore = create<AppState>((set, get) => ({
                     messages: data.messages || [],
                     resources: data.resources || [],
                     showcaseItems: data.showcaseItems || [],
-                    frozenIps: data.frozenIps || []
+                    frozenIps: data.frozenIps || [],
+                    songs: data.songs || []
                 });
             }
         } catch (error) {
@@ -101,6 +117,7 @@ export const useStore = create<AppState>((set, get) => ({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'addVisit', payload: data })
             });
+            await get().fetchData();
         } catch (e) {
             console.error("Failed to sync visit", e);
         }
@@ -127,6 +144,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'freezeIp', payload: { ip } })
         });
+        await get().fetchData();
     },
 
     unfreezeIp: async (ip) => {
@@ -140,6 +158,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'unfreezeIp', payload: { ip } })
         });
+        await get().fetchData();
     },
 
     isIpFrozen: (ip) => get().frozenIps.includes(ip),
@@ -157,6 +176,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'setShowcaseImage', payload: { id, image: base64 } })
         });
+        await get().fetchData();
     },
 
     addShowcaseFrame: async (image, title) => {
@@ -171,7 +191,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'addShowcaseFrame', payload: { image, title } })
         });
-        // Ideally we'd replace the temp ID with the real one from DB, but for MVP we re-fetch polling
+        await get().fetchData();
     },
 
     removeShowcaseFrame: async (id) => {
@@ -183,6 +203,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'removeShowcaseFrame', payload: { id } })
         });
+        await get().fetchData();
     },
 
     reorderShowcase: (startIndex, endIndex) => set((state) => {
@@ -216,6 +237,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'addResource', payload: data })
         });
+        await get().fetchData();
     },
 
     removeResource: async (id) => {
@@ -227,6 +249,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'removeResource', payload: { id } })
         });
+        await get().fetchData();
     },
 
     incrementDownloadCount: async (id) => {
@@ -238,5 +261,33 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
         });
+        await get().fetchData();
+    },
+
+    // Song Actions
+    addSong: async (data) => {
+        set((state) => ({
+            songs: [{ ...data, id: 'temp-' + Date.now(), createdAt: Date.now() }, ...state.songs]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addSong', payload: data })
+        });
+        await get().fetchData();
+    },
+
+    removeSong: async (id) => {
+        set((state) => ({
+            songs: state.songs.filter(s => s.id !== id)
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeSong', payload: { id } })
+        });
+        await get().fetchData();
     },
 }));

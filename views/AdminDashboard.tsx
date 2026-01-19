@@ -17,19 +17,20 @@ import {
     Clock,
     MapPin,
     X,
-    ExternalLink
+    ExternalLink,
+    Music
 } from 'lucide-react';
-import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource } from '../lib/store';
+import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource, Song } from '../lib/store';
 import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info } from 'lucide-react';
 
 interface AdminDashboardProps {
     onClose?: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
+const AdminDashboard = ({ onClose }: AdminDashboardProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources' | 'songs'>('overview');
     const [loginError, setLoginError] = useState(false);
     const [dashboardData, setDashboardData] = useState({
         visits: [] as Visit[],
@@ -37,7 +38,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         frozenIps: [] as string[],
         showcaseItems: [] as ShowcaseItem[],
         resources: [] as Resource[],
+        songs: [] as Song[],
     });
+
+    // Sync active tab with hash
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.split('/');
+            if (hash[0] === '#admin' && hash[1]) {
+                const tab = hash[1] as typeof activeTab;
+                if (['overview', 'visitors', 'comms', 'showcase', 'resources', 'songs'].includes(tab)) {
+                    setActiveTab(tab);
+                }
+            }
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange();
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    const setTab = (tab: typeof activeTab) => {
+        setActiveTab(tab);
+        window.location.hash = `admin/${tab}`;
+    };
 
     // Store data
     const { visits, messages, frozenIps, freezeIp, unfreezeIp, showcaseItems, resources, toggleVisitStatus } = useStore();
@@ -69,13 +92,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     frozenIps: state.frozenIps,
                     showcaseItems: state.showcaseItems,
                     resources: state.resources,
+                    songs: state.songs,
                 });
             });
             return unsubscribe;
         }
     }, [isAuthenticated]);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             const res = await fetch('/api/auth', {
@@ -131,7 +155,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             <input
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 autoFocus
                                 className={`w-full bg-white/5 border ${loginError ? 'border-red-500/50' : 'border-white/10'} rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-sky-400/50 transition-all`}
                                 placeholder="••••••••"
@@ -167,11 +191,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
                     { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
-                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' },
+                    { id: 'songs', icon: <Music size={18} />, label: 'Songs' }
                 ].map(item => (
                     <button
                         key={item.id}
-                        onClick={() => setActiveTab(item.id as any)}
+                        onClick={() => setTab(item.id as typeof activeTab)}
                         className={`p-4 rounded-2xl transition-all group relative ${activeTab === item.id ? 'bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'glass text-slate-400 hover:text-sky-300'
                             }`}
                     >
@@ -196,11 +221,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
                     { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
-                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' },
+                    { id: 'songs', icon: <Music size={18} />, label: 'Songs' }
                 ].map(item => (
                     <button
                         key={item.id}
-                        onClick={() => setActiveTab(item.id as any)}
+                        onClick={() => setTab(item.id as typeof activeTab)}
                         className={`p-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-sky-400 text-black' : 'text-slate-400'}`}
                     >
                         {item.icon}
@@ -253,29 +279,70 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             exit={{ opacity: 0, y: -10 }}
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                         >
-                            <StatCard icon={<Eye className="text-sky-300" />} label="Total Visuals" value={dashboardData.visits.length.toString()} trend="+12.4%" />
-                            <StatCard icon={<Users className="text-yellow-200" />} label="Unique IPs" value={new Set(dashboardData.visits.map(v => v.ip)).size.toString()} trend="+4.1%" />
-                            <StatCard icon={<Mic2 className="text-sky-400" />} label="Neural Syncs" value={dashboardData.messages.length.toString()} trend="Live" />
-                            <StatCard icon={<AlertCircle className="text-red-400" />} label="Frozen Nodes" value={dashboardData.frozenIps.length.toString()} trend="Secure" />
+                            <StatCard
+                                icon={<Eye className="text-sky-300" />}
+                                label="7-Day Reach"
+                                value={dashboardData.visits.length.toString()}
+                                trend={`${((dashboardData.visits.length / (dashboardData.visits.length || 1)) * 100).toFixed(1)}%`}
+                            />
+                            <StatCard
+                                icon={<Users className="text-yellow-200" />}
+                                label="Unique Nodes"
+                                value={new Set(dashboardData.visits.map(v => v.ip)).size.toString()}
+                                trend="Global"
+                            />
+                            <StatCard
+                                icon={<Mic2 className="text-sky-400" />}
+                                label="Neural Syncs"
+                                value={dashboardData.messages.length.toString()}
+                                trend="Active"
+                            />
+                            <StatCard
+                                icon={<AlertCircle className="text-red-400" />}
+                                label="Frozen Nodes"
+                                value={dashboardData.frozenIps.length.toString()}
+                                trend="Secure"
+                            />
 
                             <div className="col-span-1 md:col-span-2 lg:col-span-3 glass rounded-[3rem] p-10 border-white/5">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h3 className="text-xl font-display font-bold">Real-time Traffic Pipeline</h3>
-                                    <div className="flex gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-sky-400" />
-                                        <span className="w-2 h-2 rounded-full bg-white/10" />
-                                        <span className="w-2 h-2 rounded-full bg-white/10" />
+                                    <h3 className="text-xl font-display font-bold">7-Day Traffic Velocity</h3>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-sky-400" />
+                                            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Active nodes</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="h-64 flex items-end gap-1">
-                                    {dashboardData.visits.slice(0, 40).map((v, i) => (
-                                        <motion.div
-                                            key={v.id}
-                                            initial={{ height: 0 }}
-                                            animate={{ height: `${Math.random() * 80 + 20}%` }}
-                                            className="flex-1 bg-sky-400/20 hover:bg-sky-400/50 rounded-t-sm transition-colors cursor-help"
-                                        />
-                                    ))}
+                                <div className="h-64 flex items-end justify-between gap-2">
+                                    {(() => {
+                                        const stats = [];
+                                        const now = new Date();
+                                        for (let i = 6; i >= 0; i--) {
+                                            const d = new Date();
+                                            d.setDate(d.getDate() - i);
+                                            const dateStr = d.toLocaleDateString();
+                                            const count = dashboardData.visits.filter(v => new Date(v.timestamp).toLocaleDateString() === dateStr).length;
+                                            stats.push({ date: dateStr, count, day: d.toLocaleDateString(undefined, { weekday: 'short' }) });
+                                        }
+                                        const max = Math.max(...stats.map(s => s.count), 5);
+                                        return stats.map((s, i) => (
+                                            <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
+                                                <div className="relative w-full flex items-end justify-center h-48">
+                                                    <motion.div
+                                                        initial={{ height: 0 }}
+                                                        animate={{ height: `${(s.count / max) * 100}%` }}
+                                                        className="w-full max-w-[40px] bg-sky-400/20 group-hover:bg-sky-400/40 rounded-t-lg transition-all relative"
+                                                    >
+                                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black border border-white/10 px-2 py-1 rounded text-[8px] font-bold">
+                                                            {s.count} Visits
+                                                        </div>
+                                                    </motion.div>
+                                                </div>
+                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{s.day}</div>
+                                            </div>
+                                        ));
+                                    })()}
                                 </div>
                             </div>
 
@@ -283,7 +350,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                 <div>
                                     <h3 className="text-lg font-display font-bold mb-6">Recent Path Audits</h3>
                                     <div className="space-y-4">
-                                        {dashboardData.visits.slice(0, 5).map(v => (
+                                        {dashboardData.visits.slice(0, 10).map((v: Visit) => (
                                             <div key={v.id} className="flex items-center gap-3">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-sky-400" />
                                                 <div className="flex-1">
@@ -294,7 +361,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                         ))}
                                     </div>
                                 </div>
-                                <button onClick={() => setActiveTab('visitors')} className="text-sky-400 text-[10px] font-bold uppercase tracking-widest hover:underline mt-6">View Full Audit Log</button>
+                                <button onClick={() => setTab('visitors')} className="text-sky-400 text-[10px] font-bold uppercase tracking-widest hover:underline mt-6">View Full Audit Log</button>
                             </div>
                         </motion.div>
                     )}
@@ -318,7 +385,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {dashboardData.visits.map((v) => (
+                                        {dashboardData.visits.map((v: Visit) => (
                                             <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-4 md:px-10 py-4 md:py-6">
                                                     <div className="flex items-center gap-2 md:gap-3">
@@ -369,7 +436,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             animate={{ opacity: 1 }}
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                         >
-                            {dashboardData.messages.map((m) => (
+                            {dashboardData.messages.map((m: VoiceMessage) => (
                                 <div key={m.id} className="glass p-10 rounded-[2.5rem] border-white/5 hover:border-sky-400/30 transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-8">
@@ -427,7 +494,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                                {dashboardData.showcaseItems.map((item, index) => (
+                                {dashboardData.showcaseItems.map((item: ShowcaseItem, index: number) => (
                                     <MediaCard
                                         key={item.id}
                                         id={item.id}
@@ -474,7 +541,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                                 name: file.name,
                                                 url: event.target?.result as string,
                                                 type: file.type.includes('video') ? 'video' : file.type.includes('image') ? 'image' : file.type.includes('pdf') ? 'pdf' : 'archive',
-                                                size: file.size
+                                                size: file.size,
                                             });
                                         };
                                         reader.readAsDataURL(file);
@@ -490,7 +557,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
-                                {dashboardData.resources.map((resource) => (
+                                {dashboardData.resources.map((resource: Resource) => (
                                     <div key={resource.id} className="glass p-6 rounded-2xl border-white/5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
                                         <div className="flex items-center gap-6">
                                             <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">
@@ -537,13 +604,115 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                         </motion.div>
                     )}
 
+                    {activeTab === 'songs' && (
+                        <motion.div
+                            key="songs"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="space-y-12"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-display font-bold text-white">Sonic Archives</h3>
+                                    <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mt-1">Manage Tuned & Mixed Audio Transmissions</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="glass px-6 py-3 rounded-xl border-white/5 flex items-center gap-3">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Global Sync</div>
+                                        <div className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass p-10 rounded-[3rem] border-white/5 border-dashed border-2 flex flex-col items-center justify-center group hover:bg-white/[0.02] transition-colors cursor-pointer relative overflow-hidden">
+                                <input
+                                    type="file"
+                                    accept="audio/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        const title = prompt("Enter Song Title", file.name.split('.')[0]) || file.name;
+                                        const description = prompt("Enter Song Description (Created/Mixed/Tuned by...)", "Mixed by Aman Kumar Singh") || "";
+
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            const audio = new Audio();
+                                            audio.src = event.target?.result as string;
+                                            audio.onloadedmetadata = () => {
+                                                useStore.getState().addSong({
+                                                    title,
+                                                    url: event.target?.result as string,
+                                                    description,
+                                                    duration: Math.round(audio.duration)
+                                                });
+                                            };
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }}
+                                />
+                                <div className="w-20 h-20 bg-sky-400/10 rounded-full flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 transition-transform">
+                                    <Plus size={32} />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-white font-bold uppercase tracking-widest text-xs mb-2">Upload New Transmission</p>
+                                    <p className="text-slate-500 text-[9px] uppercase font-medium tracking-widest">MP3, WAV, WebM (Auto-Synced to Mindspace)</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {dashboardData.songs.map((song) => (
+                                    <div key={song.id} className="glass p-8 rounded-[2.5rem] border-white/5 flex flex-col justify-between hover:border-sky-400/20 transition-all group">
+                                        <div>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="w-14 h-14 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400">
+                                                    <Music size={28} />
+                                                </div>
+                                                <button
+                                                    onClick={() => useStore.getState().removeSong(song.id)}
+                                                    className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                            <h4 className="text-xl font-display font-bold text-white mb-2">{song.title}</h4>
+                                            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-6 leading-relaxed">{song.description}</p>
+                                        </div>
+
+                                        <div className="flex items-center gap-6">
+                                            <button
+                                                onClick={() => {
+                                                    const audio = new Audio(song.url);
+                                                    audio.play();
+                                                }}
+                                                className="flex-1 bg-white/5 hover:bg-sky-400 hover:text-black py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border border-white/10 hover:border-transparent"
+                                            >
+                                                <Play size={14} fill="currentColor" /> Preview Transmission
+                                            </button>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-sky-300 font-mono">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
+                                                <div className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">Sequence</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {dashboardData.songs.length === 0 && (
+                                <div className="py-20 text-center opacity-30">
+                                    <Music className="mx-auto mb-4 text-slate-500" size={48} />
+                                    <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">No sonic transmissions archived yet</p>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
                 </AnimatePresence>
             </main>
         </div>
     );
 };
 
-const StatCard: React.FC<{ icon: any, label: string, value: string, trend: string }> = ({ icon, label, value, trend }) => (
+const StatCard = ({ icon, label, value, trend }: { icon: React.ReactNode, label: string, value: string, trend: string }) => (
     <div className="glass p-10 rounded-[3rem] border-white/5 hover:border-sky-400/10 transition-all">
         <div className="flex justify-between items-start mb-8">
             <div className="p-3 bg-white/5 rounded-xl text-slate-400">
@@ -558,7 +727,7 @@ const StatCard: React.FC<{ icon: any, label: string, value: string, trend: strin
     </div>
 );
 
-const MediaCard: React.FC<{ id: string, title: string, image: string, index: number, total: number }> = ({ id, title, image, index, total }) => {
+const MediaCard = ({ id, title, image, index, total }: { id: string, title: string, image: string, index: number, total: number }) => {
     const { setShowcaseImage, removeShowcaseFrame, reorderShowcase } = useStore();
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,14 +2,16 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, User, UserCheck, X } from 'lucide-react';
 
-const PoemCard: React.FC<{
+interface PoemCardProps {
   setShowRecordingModal?: (show: boolean) => void;
   title?: string;
   children: React.ReactNode;
   className?: string;
   delay?: number;
   featured?: boolean;
-}> = ({ setShowRecordingModal, title, children, className = "", delay = 0, featured = false }) => {
+}
+
+const PoemCard = ({ setShowRecordingModal, title, children, className = "", delay = 0, featured = false }: PoemCardProps) => {
   const [showVoicePicker, setShowVoicePicker] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -85,44 +87,59 @@ const PoemCard: React.FC<{
 
     // Unified text extraction for consistent audio across all platforms
     const textElements = contentRef.current?.querySelectorAll('p');
-    let poemContent = "";
+    let lines: string[] = [];
 
     if (textElements && textElements.length > 0) {
-      poemContent = Array.from(textElements).map(el => {
-        let text = (el as HTMLElement).innerText;
-        const trimmedText = text.trim();
-
-        // Handle repetition markers (||, ।।, |2|, etc.)
-        if (trimmedText.match(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/)) {
-          text = text.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
-          return text + '  ' + text; // Double space for natural pause
-        }
-        return text;
-      }).map(line =>
-        // Remove all punctuation to prevent literal speaking
-        line.replace(/[,.!?;:।॥]/g, ' ')
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim()
-      ).join('  '); // Double space between stanzas
-    } else {
-      poemContent = (contentRef.current as HTMLElement)?.innerText || "";
+      textElements.forEach((el: HTMLElement) => {
+        // Handle BR specifically by splitting text
+        const innerText = (el as HTMLElement).innerText;
+        const subLines = innerText.split('\n');
+        subLines.forEach(l => {
+          let line = l.trim();
+          if (line) {
+            // Remove repetition markers from the text to be spoken
+            line = line.replace(/(\|\||।।|\|[२2]\||\([२2]\)|।[२2]।)$/, '');
+            lines.push(line);
+          }
+        });
+      });
     }
 
-    // Unified text cleaning for all platforms
-    let fullText = title ? `${title}  ${poemContent}` : poemContent;
+    // URL and metadata filtering to prevent "blabbering" of .com, etc.
+    const cleanLine = (text: string) => {
+      return text
+        .replace(/[a-zA-Z0-9-]+\.[a-z]{2,}[^\s]*/g, '') // Remove URLs/domains
+        .replace(/[।॥]/g, ' ')
+        .replace(/[,.!?;:]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
 
-    // Final cleanup to ensure no punctuation is spoken
-    fullText = fullText
-      .replace(/[।॥]/g, ' ')
-      .replace(/[,.!?;:]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Construct poetic flow: 1s pause (simulated with periods) after every 2 lines
+    let poemContent = "";
+    lines.forEach((line, index) => {
+      const cleaned = cleanLine(line);
+      if (cleaned) {
+        poemContent += cleaned;
+        // Poetic pause logic
+        if ((index + 1) % 2 === 0 && index < lines.length - 1) {
+          // Every two lines, insert a substantial pause
+          poemContent += ". . . . . . . . ";
+        } else {
+          // Normal line break pause
+          poemContent += ", ";
+        }
+      }
+    });
+
+    // Unified text cleaning for all platforms
+    let fullText = title ? `${cleanLine(title)}. . . ${poemContent} ` : poemContent;
 
     console.log('TTS Full Text:', fullText);
 
     // Mobile-specific handling: Some mobile browsers require user interaction to enable speech synthesis
     if ('speechSynthesis' in window) {
-      // Wait for voices to be loaded (especially important on mobile)
+      // ... same voice loading logic ...
       const loadVoices = () => {
         const allVoices = window.speechSynthesis.getVoices();
         return allVoices;
@@ -130,7 +147,6 @@ const PoemCard: React.FC<{
 
       let allVoices = loadVoices();
       if (allVoices.length === 0) {
-        // If no voices loaded yet, wait for the voiceschanged event
         window.speechSynthesis.onvoiceschanged = () => {
           allVoices = loadVoices();
         };
@@ -414,7 +430,7 @@ const PoemCard: React.FC<{
       return (
         <span
           key={i}
-          className={`transition-all duration-200 ${isHighlighted ? 'text-sky-400 font-bold scale-110 shadow-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' : colorClass}`}
+          className={`transition - all duration - 200 ${isHighlighted ? 'text-sky-400 font-bold scale-110 shadow-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' : colorClass} `}
         >
           {part}
         </span>
@@ -426,7 +442,7 @@ const PoemCard: React.FC<{
   const renderChildren = (nodes: React.ReactNode, baseOffset: number): { elements: React.ReactNode; totalLength: number } => {
     let currentOffset = baseOffset;
 
-    const elements = React.Children.map(nodes, (child) => {
+    const elements = React.Children.map(nodes, (child: React.ReactNode) => {
       if (typeof child === 'string' || typeof child === 'number') {
         const text = String(child);
         const el = renderTextWithHighlight(text, currentOffset);
@@ -473,7 +489,7 @@ const PoemCard: React.FC<{
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
       viewport={{ margin: "-50px" }}
-      className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
+      className={`group relative p - 4 sm: p - 6 md: p - 8 rounded - [1.2rem] sm: rounded - [1.5rem] md: rounded - [2rem] border border - white / 5 bg - gradient - to - br from - white / [0.03] to - white / [0.01] backdrop - blur - xl hover: bg - white / [0.05] transition - all duration - 500 overflow - hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem - card - mobile`}
     >
       {/* Playback Controls - Optimized for touch */}
       <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
@@ -551,7 +567,7 @@ const PoemCard: React.FC<{
                   <button
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
-                    className={`px-1.5 xs:px-2 sm:px-3 py-1 xs:py-1.5 sm:py-2 rounded-sm xs:rounded-md text-[6px] xs:text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    className={`px - 1.5 xs: px - 2 sm: px - 3 py - 1 xs: py - 1.5 sm: py - 2 rounded - sm xs: rounded - md text - [6px] xs: text - [7px] sm: text - [8px] font - bold transition - all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'} `}
                   >
                     {s}x
                   </button>
@@ -595,7 +611,7 @@ const PoemCard: React.FC<{
 
 };
 
-const MindspaceView: React.FC = () => {
+const MindspaceView = () => {
   // State for own voice feature (moved from PoemCard)
   const [showRecordingModal, setShowRecordingModal] = React.useState(false);
   const [recordingError, setRecordingError] = React.useState<string | null>(null);

@@ -8,7 +8,7 @@ interface NavigationProps {
   setView: (view: ViewState) => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
+const Navigation = ({ currentView, setView }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems: { id: ViewState; name: string; desc: string }[] = [
