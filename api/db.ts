@@ -58,6 +58,7 @@ export async function createTables() {
         description TEXT,
         created_at BIGINT
        );
+    `;
 
     console.log('Tables created successfully');
   } catch (error) {

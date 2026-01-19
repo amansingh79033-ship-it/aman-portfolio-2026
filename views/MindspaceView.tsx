@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, User, UserCheck, X } from 'lucide-react';
+import { Mic2, User, UserCheck, X, Music, Play, Volume2 } from 'lucide-react';
+import { useStore } from '../lib/store';
 
 interface PoemCardProps {
   setShowRecordingModal?: (show: boolean) => void;
@@ -1040,6 +1041,81 @@ const MindspaceView = () => {
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
         </div>
+
+        {/* Sonic Archives - Songs Section */}
+        <section className="mt-32 relative">
+          <div className="flex flex-col items-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              className="w-16 h-16 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400 mb-6"
+            >
+              <Music size={32} />
+            </motion.div>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-center text-white mb-4">Sonic <span className="text-sky-300">Archives.</span></h2>
+            <p className="text-slate-500 text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold text-center font-display">Tuned, Mixed & Crafted Transmissions</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {useStore().songs.map((song, index) => (
+              <motion.div
+                key={song.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="glass p-8 rounded-[2.5rem] border-white/5 group hover:border-sky-400/20 transition-all"
+              >
+                <div className="flex justify-between items-start mb-8">
+                  <div className="w-12 h-12 bg-sky-400/5 rounded-2xl flex items-center justify-center text-sky-300 group-hover:bg-sky-400 group-hover:text-black transition-all duration-500">
+                    <Music size={24} />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-sky-300/60 font-mono tracking-widest uppercase">Sequence {index + 1}</div>
+                    <div className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Archive ID: {song.id.slice(-4)}</div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-2xl font-display font-bold text-white mb-2 leading-tight group-hover:text-sky-300 transition-colors">{song.title}</h3>
+                  <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest leading-relaxed">{song.description}</p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => {
+                      const audio = new Audio(song.url);
+                      audio.play();
+                    }}
+                    className="flex-1 bg-white/5 hover:bg-sky-400 hover:text-black py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border border-white/10 hover:border-transparent"
+                  >
+                    <Play size={14} fill="currentColor" /> Play Transmission
+                  </button>
+                  <div className="w-12 h-12 flex items-center justify-center text-slate-500">
+                    <Volume2 size={18} />
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+                  <div className="text-[10px] font-mono text-slate-600">
+                    {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
+                  </div>
+                  <div className="h-1 flex-1 mx-4 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-sky-400/20 w-1/3 group-hover:w-full transition-all duration-1000" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {useStore().songs.length === 0 && (
+            <div className="py-24 text-center">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center text-slate-700 mx-auto mb-6">
+                <Music size={32} />
+              </div>
+              <p className="text-slate-600 text-[10px] uppercase font-bold tracking-[0.3em]">Sonic Archive is currently dormant</p>
+            </div>
+          )}
+        </section>
       </div>
     </>
   );
