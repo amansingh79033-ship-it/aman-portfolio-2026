@@ -104,6 +104,69 @@ const Navigation = ({ currentView, setView }: NavigationProps) => {
           Collaborate
         </button>
 
+        {/* Voice Hub Button */}
+        <button
+          className="lg:hidden text-white p-2 z-50 mr-2"
+          onClick={() => {
+            // Speak greeting in Kannada and offer menu navigation help
+            const synth = window.speechSynthesis;
+            
+            // Cancel any ongoing speech
+            synth.cancel();
+            
+            // Define the greeting in Kannada
+            const kannadaGreeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ. ನಾವು ಯಾವ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡೋಣ?";
+            
+            // Create utterance
+            const utterance = new SpeechSynthesisUtterance(kannadaGreeting);
+            
+            // Try to find a Kannada voice
+            const voices = synth.getVoices();
+            const kannadaVoice = voices.find(v => v.lang.includes('kn') || v.lang.includes('Kannada'));
+            
+            if (kannadaVoice) {
+              utterance.voice = kannadaVoice;
+            }
+            
+            utterance.lang = 'kn-IN';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            // After the greeting, provide menu options
+            utterance.onend = () => {
+              // Wait a bit and then announce menu options
+              setTimeout(() => {
+                const menuOptions = `ನೀವು ಈಗ ${currentView} ಪುಟದಲ್ಲಿದ್ದೀರಿ. ನಾವು ಕೆಳಗಿನವುಗಳಿಗೆ ಹೋಗಬಹುದು: 1. ಸಿಸ್ಟಮ್ಸ್ - ನಮ್ಮ ಕೆಲಸದ ವಿಧಾನ, 2. ಇಂಟೆಲಿಜೆನ್ಸ್ - AHI ಪ್ರೊಟೊಕಾಲ್, 3. ವೆಂಚರ್ಸ್ - 30 ಕೋಟಿ ರೂಪಾಯಿ ಪೋರ್ಟ್ಫೋಲಿಯೊ, 4. ಅನಲಿಸಿಸ್ - ಫಾರೆನ್ಸಿಕ್ಸ್, 5. ಮೈಂಡ್‌ಸ್ಪೇಸ್ - ಕವಿತೆ, 6. ಫೀಲ್ ಎಲೈವ್ - ಮನಸ್ಸು ಮತ್ತು ಜಾಗೃತ. ನೀವು ಯಾವುದಾದರೂ ಒಂದು ಆಯ್ಕೆಮಾಡಿ.`;
+                
+                const menuUtterance = new SpeechSynthesisUtterance(menuOptions);
+                
+                // Try to find a Kannada voice again
+                const voices = synth.getVoices();
+                const kannadaVoice = voices.find(v => v.lang.includes('kn') || v.lang.includes('Kannada'));
+                
+                if (kannadaVoice) {
+                  menuUtterance.voice = kannadaVoice;
+                }
+                
+                menuUtterance.lang = 'kn-IN';
+                menuUtterance.rate = 0.9;
+                menuUtterance.pitch = 1.1;
+                
+                synth.speak(menuUtterance);
+              }, 1000);
+            };
+            
+            synth.speak(utterance);
+          }}
+          aria-label="Voice hub"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mic">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+          </svg>
+        </button>
+
         {/* Mobile Hamburger */}
         <button
           className="lg:hidden text-white p-2 z-50"
