@@ -491,13 +491,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
       transition={{ duration: 0.6, delay }}
       viewport={{ margin: "-50px" }}
       className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
-      onTouchStart={(e) => {
-        e.preventDefault();
-        // Add iOS specific touch handling
-        if (window.TouchEvent) {
-          e.stopPropagation();
-        }
-      }}
     >
       {/* Playback Controls - Optimized for touch */}
       <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
@@ -508,7 +501,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
             onClick={() => setShowVoicePicker(!showVoicePicker)}
             className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
             title="Hear with emotion"
-            onTouchStart={() => setShowVoicePicker(!showVoicePicker)}
           >
             <Mic2 size={18} className="sm:w-5 sm:h-5" />
           </motion.button>
@@ -520,7 +512,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
             transition={{ repeat: Infinity, duration: 1 }}
             onClick={isPaused ? resumeSpeaking : pauseSpeaking}
             className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
-            onTouchStart={isPaused ? resumeSpeaking : pauseSpeaking}
           >
             {isPaused ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -548,7 +539,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
                   onClick={() => speak('male')}
                   className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="Men Voice"
-                  onTouchStart={() => speak('male')}
                 >
                   <User size={16} className="sm:size-5" />
                   <span>Men</span>
@@ -558,7 +548,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
                   onClick={() => speak('female')}
                   className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="Women Voice"
-                  onTouchStart={() => speak('female')}
                 >
                   <UserCheck size={16} className="sm:size-5" />
                   <span>Women</span>
@@ -568,7 +557,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
                   onClick={() => speak('own')}
                   className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="My Voice"
-                  onTouchStart={() => speak('own')}
                 >
                   <User size={16} className="sm:size-5" />
                   <span>My Voice</span>
@@ -581,7 +569,6 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
                     className={`px-1.5 xs:px-2 sm:px-3 py-1 xs:py-1.5 sm:py-2 rounded-sm xs:rounded-md text-[6px] xs:text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                    onTouchStart={() => setPlaybackSpeed(s)}
                   >
                     {s}x
                   </button>
@@ -728,10 +715,6 @@ const MindspaceView = () => {
                 setRecordingError(null);
               }}
               className="text-gray-400 hover:text-white"
-              onTouchStart={() => {
-                setShowRecordingModal(false);
-                setRecordingError(null);
-              }}
             >
               <X size={20} />
             </button>
@@ -756,10 +739,6 @@ const MindspaceView = () => {
                     startRecording();
                   }}
                   className="py-2 px-3 bg-red-700 hover:bg-red-600 text-white rounded text-sm"
-                  onTouchStart={() => {
-                    setRecordingError(null);
-                    startRecording();
-                  }}
                 >
                   Record Again
                 </button>
@@ -771,12 +750,6 @@ const MindspaceView = () => {
                     // This will be handled by the speak function in PoemCard
                   }}
                   className="py-2 px-3 bg-sky-700 hover:bg-sky-600 text-white rounded text-sm"
-                  onTouchStart={() => {
-                    setRecordingError(null);
-                    setShowRecordingModal(false);
-                    // Use default 35-year-old Hindi-Urdu professor voice
-                    // This will be handled by the speak function in PoemCard
-                  }}
                 >
                   Use Default Voice
                 </button>
@@ -790,7 +763,6 @@ const MindspaceView = () => {
                 <button
                   onClick={startRecording}
                   className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-2.5 xs:py-3 px-3 xs:px-4 rounded-md xs:rounded-lg transition-colors"
-                  onTouchStart={startRecording}
                 >
                   <Mic2 size={16} className="xs:size-[18px]" />
                   Start Recording (5 Sec)
@@ -802,10 +774,6 @@ const MindspaceView = () => {
                     // Use default 35-year-old Hindi-Urdu professor voice
                   }}
                   className="py-2.5 xs:py-3 px-3 xs:px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-md xs:rounded-lg transition-colors"
-                  onTouchStart={() => {
-                    setShowRecordingModal(false);
-                    // Use default 35-year-old Hindi-Urdu professor voice
-                  }}
                 >
                   Use Default Voice Instead
                 </button>
@@ -882,7 +850,7 @@ const MindspaceView = () => {
             <p>लाज़िमी तो नहीं पर बस शब-ए-फ़िराक़ में,<br /><span className="text-sky-200/80">अपनी ग़लतियों के वाजिब, ग़ुरुर एक आशियाना चाहता था ।</span></p>
             <p>उसको सरे-आफ़ताब पर बिठा के अमन से दरिया,<br /><span className="text-sky-200/80">दरिया के किनारे में ठिकाना चाहता था।</span></p>
             <p>नुमाइश की सौख कोई नहीं मुझको ।।<br /><span className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</span></p>
-            <p className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</p>
+            <p className="text-sky-200/80">साहिर तो फ़कत एक ज़माना चाहता था।</p>
             <p>उन दुश्मनों को भी याद रखे मुसल्सल ज़माना,</p>
             <p><span className="text-sky-200/80">वैरी फ़रेब के बदले मर जाना चाहता था।</span></p>
             <p>सुनते थका नहीं आरज़ू वो सारे जहाँ की ।।<br /><span className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</span></p>
@@ -982,10 +950,176 @@ const MindspaceView = () => {
             <p className="text-sky-200/80">For they search for cracks in the moon instead.</p>
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
+
+          <PoemCard title="नई जगह है">
+            <p>नई जगह है,</p>
+            <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
+            <p>लिपटने को कुछ,</p>
+            <p className="text-sky-200/80">एक कोना मेरे गाँव से बस कम लगता है।</p>
+            <p>दिन गुज़रता रहा</p>
+            <p className="text-sky-200/80">एक अंजान ख़याल के साथ,</p>
+            <p>मेरी हँसी को</p>
+            <p className="text-sky-200/80">ये अज़नवी मेरा ज़ख़्म कहता है।</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>जैसे सड़क से उठाया</p>
+            <p className="text-sky-200/80">किसी ग़ैर का हम-ग़म लगता है।</p>
+            <p>किसने मोड़ा है</p>
+            <p className="text-sky-200/80">सच का स्वाद</p>
+            <p>कड़वाहट की ओर,</p>
+            <p className="text-sky-200/80">जो खड़ा है मरहम लिए,</p>
+            <p>वो भी बेरहम लगता है।</p>
+            <p>अजीब सी एक जगह है</p>
+            <p className="text-sky-200/80">शहर नाम का उस तरफ़,</p>
+            <p>वहाँ ख़ुशियाँ जैसे मरा हुआ</p>
+            <p className="text-sky-200/80">कोई वहम लगता है।</p>
+            <p>फिर एक रात</p>
+            <p className="text-sky-200/80">टहलते हुए</p>
+            <p>चाँद को निहारते,</p>
+            <p className="text-sky-200/80">ये सवाल पूछा मन ने…,</p>
+            <p>अच्छा,</p>
+            <p className="text-sky-200/80">एक पत्थर को</p>
+            <p>एक मिसाल होने में,</p>
+            <p className="text-sky-200/80">आख़िर…?</p>
+            <p>कितना ज़नम लगता है?</p>
+            <p className="text-sky-200/80">ज़हन के किसी कोने से</p>
+            <p>चिल्लाती एक आवाज़ आती है—</p>
+            <p className="text-sky-200/80">मरते हैं लोग,</p>
+            <p>पत्थर बेज़ान होते हैं।</p>
+            <p className="text-sky-200/80">पत्थर ही बताएगा</p>
+            <p>मरे रहने में</p>
+            <p className="text-sky-200/80">कितना संयम लगता है?</p>
+            <p>सवाल फिर ये भी कि</p>
+            <p className="text-sky-200/80">अगर मरते हैं लोग</p>
+            <p>झूठी क़समों के</p>
+            <p className="text-sky-200/80">सिरहाने आकर,</p>
+            <p>तो फिर एक जीवन को</p>
+            <p className="text-sky-200/80">जीने भर में</p>
+            <p>ये इतना इल्म</p>
+            <p className="text-sky-200/80">क्यों लगता है?</p>
+            <p>और अचानक</p>
+            <p className="text-sky-200/80">ज़हन शांत।</p>
+            <p>एक कारण,</p>
+            <p className="text-sky-200/80">एक जवाब,</p>
+            <p>और एक कोना ढूँढते हुए,</p>
+            <p className="text-sky-200/80">मानो एक बोझ को</p>
+            <p>एक कंधे से</p>
+            <p className="text-sky-200/80">दूसरे कंधे पर</p>
+            <p>सरियाते हुए</p>
+            <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
+            <p>"अरे!</p>
+            <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
+            <p>कहाँ कोई वहम बचता है।</p>
+            <p className="text-sky-200/80">ना किसी इल्म की है ज़रूरत—</p>
+            <p>सर उठाओ!</p>
+            <p className="text-sky-200/80">क्यों शर्म लगता है?</p>
+            <p>इस जीवन को काटना है</p>
+            <p className="text-sky-200/80">तो सोच के आँगन से</p>
+            <p>निकल जाना—बहार।</p>
+            <p className="text-sky-200/80">पर गर जीना हो,</p>
+            <p>तो सोच से सिमट कर सुनना —</p>
+            <p className="text-sky-200/80">एक टुकड़ा काग़ज़ का,</p>
+            <p>एक क़लम लगता है।</p>
+            <p className="text-sky-200/80">एक सड़क कील का,</p>
+            <p>और बस</p>
+            <p className="text-sky-200/80">इक क़दम लगता है।"</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="Galatfehmi {गलतफहमी}">
+            <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
+            <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
+            <div className="h-4" />
+            <p className="text-sky-200/80">baahon me bharkar samandar puchta hai aman se katra</p>
+            <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
+            <p className="text-sky-200/80">aazad Shah-Anshan !</p>
+            <div className="h-4" />
+            <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
+            <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
         </div>
+
+        {/* Sonic Archives - Songs Section */}
+        <section className="mt-32 relative">
+          <div className="flex flex-col items-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              className="w-16 h-16 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400 mb-6"
+            >
+              <Music size={32} />
+            </motion.div>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-center text-white mb-4">Sonic <span className="text-sky-300">Archives.</span></h2>
+            <p className="text-slate-500 text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold text-center font-display">Tuned, Mixed & Crafted Transmissions</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {useStore().songs.map((song, index) => (
+              <motion.div
+                key={song.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="glass p-8 rounded-[2.5rem] border-white/5 group hover:border-sky-400/20 transition-all"
+              >
+                <div className="flex justify-between items-start mb-8">
+                  <div className="w-12 h-12 bg-sky-400/5 rounded-2xl flex items-center justify-center text-sky-300 group-hover:bg-sky-400 group-hover:text-black transition-all duration-500">
+                    <Music size={24} />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-sky-300/60 font-mono tracking-widest uppercase">Sequence {index + 1}</div>
+                    <div className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Archive ID: {song.id.slice(-4)}</div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-2xl font-display font-bold text-white mb-2 leading-tight group-hover:text-sky-300 transition-colors">{song.title}</h3>
+                  <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest leading-relaxed">{song.description}</p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => {
+                      const audio = new Audio(song.url);
+                      audio.play();
+                    }}
+                    className="flex-1 bg-white/5 hover:bg-sky-400 hover:text-black py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border border-white/10 hover:border-transparent"
+                  >
+                    <Play size={14} fill="currentColor" /> Play Transmission
+                  </button>
+                  <div className="w-12 h-12 flex items-center justify-center text-slate-500">
+                    <Volume2 size={18} />
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+                  <div className="text-[10px] font-mono text-slate-600">
+                    {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
+                  </div>
+                  <div className="h-1 flex-1 mx-4 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-sky-400/20 w-1/3 group-hover:w-full transition-all duration-1000" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {useStore().songs.length === 0 && (
+            <div className="py-24 text-center">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center text-slate-700 mx-auto mb-6">
+                <Music size={32} />
+              </div>
+              <p className="text-slate-600 text-[10px] uppercase font-bold tracking-[0.3em]">Sonic Archive is currently dormant</p>
+            </div>
+          )}
+        </section>
       </div>
     </>
   );
 };
+
 
 export default MindspaceView;

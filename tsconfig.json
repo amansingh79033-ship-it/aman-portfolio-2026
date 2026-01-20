@@ -1,5 +1,9 @@
 {
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "types/**/*.d.ts", "*.d.ts"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
@@ -11,14 +15,15 @@
       "DOM.Iterable"
     ],
     "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "auto",
+    "allowJs": true,
     "types": [
       "node"
     ],
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "allowJs": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "paths": {
       "@/*": [
         "./*"

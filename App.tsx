@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
 import Navigation from './components/Navigation.tsx';
@@ -23,18 +23,31 @@ import { ShieldAlert } from 'lucide-react';
 
 export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'analysis' | 'mindspace' | 'admin' | 'resources' | 'ahi-report' | 'feel-alive';
 
-const App: React.FC = () => {
+const App = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
-  const [isVisionOpen, setIsVisionOpen] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isVisionOpen, setIsVisionOpen] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const isIpFrozen = useStore(state => state.isIpFrozen);
   const [myIp, setMyIp] = useState('');
 
   // Real-time Analytics
   useAnalytics(currentView);
 
+  const setView = (view: ViewState) => {
+    setCurrentView(view);
+    window.location.hash = view;
+  };
+
+  const lenisRef = useRef<Lenis | null>(null);
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+      // Small timeout to allow DOM to update before resizing lenis
+      setTimeout(() => {
+        lenisRef.current?.resize();
+      }, 100);
+    }
   }, [currentView]);
 
   useEffect(() => {
@@ -45,9 +58,15 @@ const App: React.FC = () => {
 
     const lenis = new Lenis({
       duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
+      touchMultiplier: 2,
     });
+
+    lenisRef.current = lenis;
 
     function raf(time: number) {
       lenis.raf(time);
@@ -57,8 +76,23 @@ const App: React.FC = () => {
 
     const timer = setTimeout(() => setIsLoaded(true), 1000);
 
+    const handleHashChange = () => {
+      const hash = window.location.hash.split('/')[0].replace('#', '');
+      if (['home', 'systems', 'intelligence', 'ventures', 'analysis', 'mindspace', 'admin', 'resources', 'ahi-report', 'feel-alive'].includes(hash)) {
+        setCurrentView(hash as ViewState);
+      } else if (!hash) {
+        setCurrentView('home');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Initial check
+
     const handleViewChange = (e: any) => {
-      if (e.detail) setCurrentView(e.detail);
+      if (e.detail) {
+        setCurrentView(e.detail);
+        window.location.hash = e.detail;
+      }
     };
     window.addEventListener('change-view', handleViewChange);
 
@@ -66,6 +100,7 @@ const App: React.FC = () => {
       clearTimeout(timer);
       lenis.destroy();
       window.removeEventListener('change-view', handleViewChange);
+      window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
 
@@ -88,7 +123,7 @@ const App: React.FC = () => {
     switch (currentView) {
       case 'home': return (
         <>
-          <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />
+          <Hero onExplore={() => setView('systems')} onWatchVision={() => setIsVisionOpen(true)} />
           <SkillMatrix />
           <NeuralSync />
         </>
@@ -99,10 +134,10 @@ const App: React.FC = () => {
       case 'analysis': return <AnalysisView />;
       case 'mindspace': return <MindspaceView />;
       case 'resources': return <ResourcesView />;
-      case 'ahi-report': return <AhiReportView onBack={() => setCurrentView('intelligence')} />;
+      case 'ahi-report': return <AhiReportView onBack={() => setView('intelligence')} />;
       case 'feel-alive': return <FeelAliveView />;
-      case 'admin': return <AdminDashboard onClose={() => setCurrentView('home')} />;
-      default: return <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />;
+      case 'admin': return <AdminDashboard onClose={() => setView('home')} />;
+      default: return <Hero onExplore={() => setView('systems')} onWatchVision={() => setIsVisionOpen(true)} />;
     }
   };
 
@@ -149,7 +184,7 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {currentView !== 'admin' && <Footer setView={setCurrentView} />}
+      {currentView !== 'admin' && <Footer setView={setView} />}
 
       {currentView !== 'admin' && (
         <div className="fixed inset-0 pointer-events-none z-[1]">

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Square, Play, Activity, Github } from 'lucide-react';
 import { useStore } from '../lib/store';
 
-const NeuralSync: React.FC = () => {
+const NeuralSync = () => {
     const [isHovered, setIsHovered] = useState(false);
     const [timer, setTimer] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
@@ -14,7 +14,7 @@ const NeuralSync: React.FC = () => {
     const chunksRef = useRef<Blob[]>([]);
     const hoverIntervalRef = useRef<any>(null);
     const recordIntervalRef = useRef<any>(null);
-    
+
     // Detect if the device is touch-enabled
     const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
@@ -173,14 +173,14 @@ const NeuralSync: React.FC = () => {
                                         className="space-y-6 flex flex-col items-center"
                                     >
                                         <div className="p-8 bg-sky-400/10 rounded-full text-sky-400 mb-4 animate-pulse" onClick={() => {
-                                              if (isTouchDevice) {
+                                            if (isTouchDevice) {
                                                 setIsHovered(true);
                                                 setTimeout(() => {
-                                                  startRecording();
-                                                  setIsHovered(false);
+                                                    startRecording();
+                                                    setIsHovered(false);
                                                 }, 100);
-                                              }
-                                            }}>
+                                            }
+                                        }}>
                                             <Mic size={40} />
                                         </div>
                                         <div className="text-slate-400 text-sm font-bold uppercase tracking-[0.3em]">

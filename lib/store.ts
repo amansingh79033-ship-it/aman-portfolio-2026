@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 export interface Visit {
     id: string;
@@ -33,112 +32,262 @@ export interface VoiceMessage {
     timestamp: number;
 }
 
+export interface Song {
+    id: string;
+    title: string;
+    url: string;
+    duration: number;
+    description: string;
+    createdAt: number;
+}
+
 interface AppState {
     visits: Visit[];
     messages: VoiceMessage[];
     frozenIps: string[];
     showcaseItems: ShowcaseItem[];
     resources: Resource[];
-    addVisit: (visit: Omit<Visit, 'id' | 'timestamp' | 'status'>) => void;
-    addMessage: (message: Omit<VoiceMessage, 'id' | 'timestamp'>) => void;
-    freezeIp: (ip: string) => void;
-    unfreezeIp: (ip: string) => void;
+    songs: Song[];
+
+    // Actions
+    fetchData: () => Promise<void>;
+    addVisit: (visit: Omit<Visit, 'id' | 'timestamp' | 'status'>) => Promise<void>;
+    addMessage: (message: Omit<VoiceMessage, 'id' | 'timestamp'>) => Promise<void>;
+    freezeIp: (ip: string) => Promise<void>;
+    unfreezeIp: (ip: string) => Promise<void>;
     isIpFrozen: (ip: string) => boolean;
+
+    // UI Helpers (optimistic or local for now, could be server later)
     setShowcaseImage: (id: string, base64: string) => void;
     addShowcaseFrame: (image: string, title: string) => void;
     removeShowcaseFrame: (id: string) => void;
     reorderShowcase: (startIndex: number, endIndex: number) => void;
-    toggleVisitStatus: (visitId: string) => void;
+
+    toggleVisitStatus: (visitId: string) => Promise<void>;
     addResource: (resource: Omit<Resource, 'id' | 'downloads' | 'uploadedAt'>) => void;
     removeResource: (id: string) => void;
     incrementDownloadCount: (id: string) => void;
+
+    // Song Actions
+    addSong: (song: Omit<Song, 'id' | 'createdAt'>) => Promise<void>;
+    removeSong: (id: string) => Promise<void>;
 }
 
-export const useStore = create<AppState>()(
-    persist(
-        (set, get) => ({
-            visits: [],
-            messages: [],
-            frozenIps: [],
-            showcaseItems: [
-                { id: 'profile', title: 'Profile Identity', image: '' },
-                { id: 'project1', title: 'Project Alpha', image: '' },
-                { id: 'project2', title: 'Project Beta', image: '' }
-            ],
-            resources: [],
-            addVisit: (data) => {
-                const visit: Visit = {
-                    ...data,
-                    id: Math.random().toString(36).substr(2, 9),
-                    timestamp: Date.now(),
-                    status: get().frozenIps.includes(data.ip) ? 'frozen' : 'active',
-                };
-                set((state) => ({ visits: [visit, ...state.visits].slice(0, 1000) }));
-            },
-            addMessage: (data) => {
-                const message: VoiceMessage = {
-                    ...data,
-                    id: Math.random().toString(36).substr(2, 9),
-                    timestamp: Date.now(),
-                };
-                set((state) => ({ messages: [message, ...state.messages] }));
-            },
-            freezeIp: (ip) => set((state) => ({
-                frozenIps: [...state.frozenIps, ip],
-                visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'frozen' } : v)
-            })),
-            unfreezeIp: (ip) => set((state) => ({
-                frozenIps: state.frozenIps.filter(i => i !== ip),
-                visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'active' } : v)
-            })),
-            isIpFrozen: (ip) => get().frozenIps.includes(ip),
-            setShowcaseImage: (id, base64) => set((state) => ({
-                showcaseItems: state.showcaseItems.map(item =>
-                    item.id === id ? { ...item, image: base64 } : item
-                )
-            })),
-            addShowcaseFrame: (image, title) => set((state) => ({
-                showcaseItems: [...state.showcaseItems, { id: Math.random().toString(36).substr(2, 9), image, title }]
-            })),
-            removeShowcaseFrame: (id) => set((state) => ({
-                showcaseItems: state.showcaseItems.filter(item => item.id !== id)
-            })),
-            reorderShowcase: (startIndex, endIndex) => set((state) => {
-                const items = [...state.showcaseItems];
-                const [reorderedItem] = items.splice(startIndex, 1);
-                items.splice(endIndex, 0, reorderedItem);
-                return { showcaseItems: items };
-            }),
-            addResource: (data) => set((state) => ({
-                resources: [{ ...data, id: Math.random().toString(36).substr(2, 9), downloads: 0, uploadedAt: Date.now() }, ...state.resources]
-            })),
-            removeResource: (id) => set((state) => ({
-                resources: state.resources.filter(r => r.id !== id)
-            })),
-            incrementDownloadCount: (id) => set((state) => ({
-                resources: state.resources.map(r => r.id === id ? { ...r, downloads: r.downloads + 1 } : r)
-            })),
-            toggleVisitStatus: (visitId) => set((state) => {
-                const visit = state.visits.find(v => v.id === visitId);
-                if (!visit) return state;
-                const newStatus = visit.status === 'active' ? 'frozen' : 'active';
-                const ip = visit.ip;
+export const useStore = create<AppState>((set, get) => ({
+    visits: [],
+    messages: [],
+    frozenIps: [],
+    showcaseItems: [],
+    resources: [],
+    songs: [],
 
-                let newFrozenIps = [...state.frozenIps];
-                if (newStatus === 'frozen') {
-                    if (!newFrozenIps.includes(ip)) newFrozenIps.push(ip);
-                } else {
-                    newFrozenIps = newFrozenIps.filter(i => i !== ip);
-                }
-
-                return {
-                    visits: state.visits.map(v => v.ip === ip ? { ...v, status: newStatus } : v),
-                    frozenIps: newFrozenIps
-                };
-            })
-        }),
-        {
-            name: 'archive-storage',
+    fetchData: async () => {
+        try {
+            const res = await fetch('/api/data');
+            if (res.ok) {
+                const data = await res.json();
+                set({
+                    visits: data.visits || [],
+                    messages: data.messages || [],
+                    resources: data.resources || [],
+                    showcaseItems: data.showcaseItems || [],
+                    frozenIps: data.frozenIps || [],
+                    songs: data.songs || []
+                });
+            }
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
         }
-    )
-);
+    },
+
+    addVisit: async (data) => {
+        // Optimistic update
+        const visit: Visit = {
+            ...data,
+            id: 'temp-' + Date.now(),
+            timestamp: Date.now(),
+            status: get().frozenIps.includes(data.ip) ? 'frozen' : 'active',
+        };
+        set((state) => ({ visits: [visit, ...state.visits].slice(0, 1000) }));
+
+        // Server sync
+        try {
+            await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'addVisit', payload: data })
+            });
+            await get().fetchData();
+        } catch (e) {
+            console.error("Failed to sync visit", e);
+        }
+    },
+
+    addMessage: async (data) => {
+        // Optimistic
+        const message: VoiceMessage = {
+            ...data,
+            id: 'temp-' + Date.now(),
+            timestamp: Date.now(),
+        };
+        set((state) => ({ messages: [message, ...state.messages] }));
+    },
+
+    freezeIp: async (ip) => {
+        set((state) => ({
+            frozenIps: [...state.frozenIps, ip],
+            visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'frozen' } : v)
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'freezeIp', payload: { ip } })
+        });
+        await get().fetchData();
+    },
+
+    unfreezeIp: async (ip) => {
+        set((state) => ({
+            frozenIps: state.frozenIps.filter(i => i !== ip),
+            visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'active' } : v)
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'unfreezeIp', payload: { ip } })
+        });
+        await get().fetchData();
+    },
+
+    isIpFrozen: (ip) => get().frozenIps.includes(ip),
+
+    // These remain local/demo for now as per minimal implementation requests or extend pattern above
+    // Showcase Actions
+    setShowcaseImage: async (id, base64) => {
+        set((state) => ({
+            showcaseItems: state.showcaseItems.map(item =>
+                item.id === id ? { ...item, image: base64 } : item
+            )
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'setShowcaseImage', payload: { id, image: base64 } })
+        });
+        await get().fetchData();
+    },
+
+    addShowcaseFrame: async (image, title) => {
+        // Optimistic update
+        const tempId = Math.random().toString(36).substr(2, 9);
+        set((state) => ({
+            showcaseItems: [...state.showcaseItems, { id: tempId, image, title }]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addShowcaseFrame', payload: { image, title } })
+        });
+        await get().fetchData();
+    },
+
+    removeShowcaseFrame: async (id) => {
+        set((state) => ({
+            showcaseItems: state.showcaseItems.filter(item => item.id !== id)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeShowcaseFrame', payload: { id } })
+        });
+        await get().fetchData();
+    },
+
+    reorderShowcase: (startIndex, endIndex) => set((state) => {
+        const items = [...state.showcaseItems];
+        const [reorderedItem] = items.splice(startIndex, 1);
+        items.splice(endIndex, 0, reorderedItem);
+        // Note: Reorder persistence is not yet implemented on backend for this MVP
+        return { showcaseItems: items };
+    }),
+
+    toggleVisitStatus: async (visitId) => {
+        const visit = get().visits.find(v => v.id === visitId);
+        if (!visit) return;
+        const ip = visit.ip;
+        if (visit.status === 'active') {
+            await get().freezeIp(ip);
+        } else {
+            await get().unfreezeIp(ip);
+        }
+    },
+
+    // Resource Actions
+    addResource: async (data) => {
+        // Optimistic
+        set((state) => ({
+            resources: [{ ...data, id: 'temp-' + Date.now(), downloads: 0, uploadedAt: Date.now() }, ...state.resources]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addResource', payload: data })
+        });
+        await get().fetchData();
+    },
+
+    removeResource: async (id) => {
+        set((state) => ({
+            resources: state.resources.filter(r => r.id !== id)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeResource', payload: { id } })
+        });
+        await get().fetchData();
+    },
+
+    incrementDownloadCount: async (id) => {
+        set((state) => ({
+            resources: state.resources.map(r => r.id === id ? { ...r, downloads: r.downloads + 1 } : r)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
+        });
+        await get().fetchData();
+    },
+
+    // Song Actions
+    addSong: async (data) => {
+        set((state) => ({
+            songs: [{ ...data, id: 'temp-' + Date.now(), createdAt: Date.now() }, ...state.songs]
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addSong', payload: data })
+        });
+        await get().fetchData();
+    },
+
+    removeSong: async (id) => {
+        set((state) => ({
+            songs: state.songs.filter(s => s.id !== id)
+        }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeSong', payload: { id } })
+        });
+        await get().fetchData();
+    },
+}));
