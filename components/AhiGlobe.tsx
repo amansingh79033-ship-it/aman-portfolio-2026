@@ -77,9 +77,21 @@ const AhiGlobe: React.FC = () => {
                 targetRotationX = mouse.y * 0.8; // Increased sensitivity for better hover effect
             }
         };
+        
+        const handleTouchMove = (event: TouchEvent) => {
+            const rect = mountRef.current?.getBoundingClientRect();
+            if (rect && event.touches.length > 0) {
+                const touch = event.touches[0];
+                mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+                targetRotationY = mouse.x * 0.8; // Increased sensitivity for better hover effect
+                targetRotationX = mouse.y * 0.8; // Increased sensitivity for better hover effect
+            }
+        };
 
         const canvas = renderer.domElement;
         canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('touchmove', handleTouchMove);
 
         const clock = new THREE.Clock();
 
@@ -127,6 +139,7 @@ const AhiGlobe: React.FC = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
             canvas.removeEventListener('mousemove', handleMouseMove);
+            canvas.removeEventListener('touchmove', handleTouchMove);
             mountRef.current?.removeChild(renderer.domElement);
             // Cleanup
             coreGeometry.dispose();
@@ -139,7 +152,7 @@ const AhiGlobe: React.FC = () => {
         };
     }, []);
 
-    return <div ref={mountRef} className="w-full h-[500px] md:h-[600px] cursor-move hover:cursor-grab active:cursor-grabbing" title="Interactive AHI Neural Map" />;
+    return <div ref={mountRef} className="w-full h-[500px] md:h-[600px] cursor-move hover:cursor-grab active:cursor-grabbing" title="Interactive AHI Neural Map" onTouchMove={(e) => e.preventDefault()} />;
 };
 
 export default AhiGlobe;

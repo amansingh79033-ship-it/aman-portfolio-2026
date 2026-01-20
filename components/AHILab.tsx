@@ -11,7 +11,7 @@ const AHILab: React.FC = () => {
       title: "AHI vs AI",
       label: "Assistance to Human Intelligence",
       icon: <Brain className="text-sky-300" />,
-      content: "Aman contradicts the global trend of replacing human cognition with AI. His research focuses on AHI—using technology as a cognitive exoskeleton to amplify inherent human genius.",
+      content: "Aman contradicts the global trend of replacing human cognition with AI. His research focuses on AHI using technology as a cognitive exoskeleton to amplify inherent human genius.",
       color: "text-sky-300"
     },
     {

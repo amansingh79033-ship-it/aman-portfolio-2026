@@ -22,7 +22,7 @@ const Vision: React.FC = () => {
             </p>
             <div className="border-l-2 border-sky-400 pl-6 my-8">
               <p className="text-white italic font-light">
-                "The 'Made in Bihar' tag signals resilience, intellectual depth, and hunger—traits highly valued in the global talent market."
+                "The 'Made in Bihar' tag signals resilience, intellectual depth, and hunger traits highly valued in the global talent market."
               </p>
             </div>
             <p>

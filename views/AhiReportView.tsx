@@ -53,7 +53,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                         <span className="text-sky-400 text-glow">The AHI Nexus</span>
                     </h1>
                     <p className="text-slate-400 text-xl font-light italic border-l-2 border-sky-500/50 pl-6 py-2 max-w-2xl">
-                        "We need some tech to think with us, not for us!" — Engineering the future of symbiotic intelligence.
+                        "We need some tech to think with us, not for us!"  Engineering the future of symbiotic intelligence.
                     </p>
                 </motion.div>
             </header>
@@ -102,7 +102,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                             <h3 className="text-3xl font-bold text-white mb-8 italic">The Symbiotic Scaffold (With Us)</h3>
                             <div className="space-y-6 text-slate-300 leading-relaxed text-base">
                                 <p>
-                                    <strong>Cognitive Sovereignty:</strong> In the AHI model, the user remains the primary processing unit. The AI acts as a <i>Shadow Process</i>—always listening, always verifying, but never deciding.
+                                    <strong>Cognitive Sovereignty:</strong> In the AHI model, the user remains the primary processing unit. The AI acts as a <i>Shadow Process</i> always listening, always verifying, but never deciding.
                                 </p>
                                 <p>
                                     <strong>Contextual Persistence:</strong> Traditional AI is ephemeral. AHI is persistent. It builds a long-term map of your errors, your breakthroughs, and your unique terminologies. It doesn't just know the world; it knows <i>your world</i>.

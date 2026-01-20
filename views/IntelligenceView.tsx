@@ -31,7 +31,7 @@ const IntelligenceView: React.FC = () => {
               <p className="text-sm text-slate-300 italic">
                 "The goal is not to build a mind that thinks <strong>for</strong> you, but a system that thinks <strong>with</strong> you."
               </p>
-              <div className="mt-2 text-xs text-sky-500 font-bold uppercase tracking-widest">— Aman Kumar Singh</div>
+              <div className="mt-2 text-xs text-sky-500 font-bold uppercase tracking-widest"> Aman Kumar Singh</div>
             </div>
             <div className="mt-12 flex flex-wrap gap-4">
               <button

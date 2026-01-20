@@ -15,6 +15,7 @@ const ThreeBrain: React.FC<ThreeBrainProps> = ({ className }) => {
   const particlesGeometryRef = useRef<THREE.BufferGeometry | null>(null);
   const frameIdRef = useRef<number | null>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
+  const isHoveredRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -159,6 +160,32 @@ const ThreeBrain: React.FC<ThreeBrainProps> = ({ className }) => {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    
+    // Touch event handlers for mobile interaction
+    const handleTouchStart = () => {
+      isHoveredRef.current = true;
+    };
+    
+    const handleTouchEnd = () => {
+      isHoveredRef.current = false;
+    };
+    
+    // Mouse enter and leave handlers for hover effects
+    const handleMouseEnter = () => {
+      isHoveredRef.current = true;
+    };
+    
+    const handleMouseLeave = () => {
+      isHoveredRef.current = false;
+    };
+    
+    if (containerRef.current) {
+      containerRef.current.addEventListener('mouseenter', handleMouseEnter);
+      containerRef.current.addEventListener('mouseleave', handleMouseLeave);
+      // Add touch event listeners for mobile devices
+      containerRef.current.addEventListener('touchstart', handleTouchStart);
+      containerRef.current.addEventListener('touchend', handleTouchEnd);
+    }
 
     // Animation loop
     const animate = () => {
@@ -168,24 +195,38 @@ const ThreeBrain: React.FC<ThreeBrainProps> = ({ className }) => {
       const time = Date.now() * 0.001;
       
       if (brainRef.current) {
-        // Rotate the brain slowly
-        brainRef.current.rotation.x += 0.002;
-        brainRef.current.rotation.y += 0.003;
+        // Adjust rotation speed based on hover state
+        const rotationSpeed = isHoveredRef.current ? 0.005 : 0.002;
+        const rotationSpeedY = isHoveredRef.current ? 0.007 : 0.003;
         
-        // Animate neural nodes with pulsating effect
+        // Rotate the brain with enhanced effect when hovered
+        brainRef.current.rotation.x += rotationSpeed;
+        brainRef.current.rotation.y += rotationSpeedY;
+        
+        // Enhanced neural node animation when hovered
         neuralNodes.forEach((node, index) => {
           // Create a pulsating effect
-          const pulse = Math.sin(time * 2 + index) * 0.2 + 1;
+          const pulseBase = isHoveredRef.current ? 0.3 : 0.2;
+          const pulse = Math.sin(time * (isHoveredRef.current ? 3 : 2) + index) * pulseBase + 1;
           node.scale.set(pulse, pulse, pulse);
                 
           // Change emissive intensity for glowing effect
           if (node.material instanceof THREE.MeshPhongMaterial) {
-            const intensity = Math.sin(time * 1.5 + index) * 0.3 + 0.5;
+            const intensityBase = isHoveredRef.current ? 0.5 : 0.3;
+            const intensity = Math.sin(time * (isHoveredRef.current ? 2 : 1.5) + index) * intensityBase + (isHoveredRef.current ? 0.7 : 0.5);
             node.material.emissiveIntensity = intensity;
+          }
+          
+          // Add subtle positional animation when hovered
+          if (isHoveredRef.current) {
+            const offset = Math.sin(time * 2 + index) * 0.02;
+            node.position.x += offset * 0.1;
+            node.position.y += offset * 0.1;
+            node.position.z += offset * 0.1;
           }
         });
               
-        // Animate particles for subtle movement
+        // Enhanced particle animation when hovered
         if (particlesRef.current && particlesGeometryRef.current) {
           const positions = particlesRef.current.geometry.attributes.position;
           const originalPositions = particlesGeometryRef.current.getAttribute('position').array as Float32Array;
@@ -194,22 +235,42 @@ const ThreeBrain: React.FC<ThreeBrainProps> = ({ className }) => {
             const i3 = i * 3;
                   
             // Add small oscillation to each particle
-            positions.array[i3] = originalPositions[i3] + Math.sin(time * 0.5 + i) * 0.05;
-            positions.array[i3 + 1] = originalPositions[i3 + 1] + Math.cos(time * 0.3 + i) * 0.05;
-            positions.array[i3 + 2] = originalPositions[i3 + 2] + Math.sin(time * 0.7 + i) * 0.05;
+            const particleSpeed = isHoveredRef.current ? 0.1 : 0.05;
+            positions.array[i3] = originalPositions[i3] + Math.sin(time * (isHoveredRef.current ? 1 : 0.5) + i) * particleSpeed;
+            positions.array[i3 + 1] = originalPositions[i3 + 1] + Math.cos(time * (isHoveredRef.current ? 0.6 : 0.3) + i) * particleSpeed;
+            positions.array[i3 + 2] = originalPositions[i3 + 2] + Math.sin(time * (isHoveredRef.current ? 1.4 : 0.7) + i) * particleSpeed;
           }
                 
           positions.needsUpdate = true;
         }
         
-        // Add subtle mouse interaction
+        // Enhanced mouse interaction when hovered
         if (cameraRef.current) {
+          const interactionStrength = isHoveredRef.current ? 0.1 : 0.05;
+          const cameraDistance = isHoveredRef.current ? 3 : 4;
+          
           // Smoothly adjust camera position based on mouse movement
-          cameraRef.current.position.x += (mouseRef.current.x * 2 - cameraRef.current.position.x) * 0.05;
-          cameraRef.current.position.y += (mouseRef.current.y * 2 - cameraRef.current.position.y) * 0.05;
+          cameraRef.current.position.x += (mouseRef.current.x * (isHoveredRef.current ? 3 : 2) - cameraRef.current.position.x) * interactionStrength;
+          cameraRef.current.position.y += (mouseRef.current.y * (isHoveredRef.current ? 3 : 2) - cameraRef.current.position.y) * interactionStrength;
+          
+          // Adjust camera distance when hovered
+          if (cameraRef.current.position.z > cameraDistance && !isHoveredRef.current) {
+            cameraRef.current.position.z -= 0.05;
+          } else if (cameraRef.current.position.z < cameraDistance && isHoveredRef.current) {
+            cameraRef.current.position.z += 0.05;
+          }
           
           // Ensure camera stays at appropriate distance and looks at the brain
           cameraRef.current.lookAt(0, 0, 0);
+        }
+        
+        // Add subtle scaling effect when hovered
+        if (brainRef.current && isHoveredRef.current) {
+          brainRef.current.scale.x = 1 + Math.sin(time * 2) * 0.05;
+          brainRef.current.scale.y = 1 + Math.cos(time * 2) * 0.05;
+          brainRef.current.scale.z = 1 + Math.sin(time * 2) * 0.05;
+        } else if (brainRef.current) {
+          brainRef.current.scale.set(1, 1, 1);
         }
       }
 
@@ -235,6 +296,14 @@ const ThreeBrain: React.FC<ThreeBrainProps> = ({ className }) => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
+      
+      // Remove mouse and touch listeners
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('mouseenter', handleMouseEnter);
+        containerRef.current.removeEventListener('mouseleave', handleMouseLeave);
+        containerRef.current.removeEventListener('touchstart', handleTouchStart);
+        containerRef.current.removeEventListener('touchend', handleTouchEnd);
+      }
       
       if (frameIdRef.current) {
         cancelAnimationFrame(frameIdRef.current);

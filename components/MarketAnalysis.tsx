@@ -82,7 +82,7 @@ const MarketAnalysis: React.FC = () => {
             "If I am facing a problem, it's not me who gets to think twice here about my next plan."
           </h3>
           <p className="text-sky-300 font-display font-bold uppercase tracking-[0.4em] text-sm relative z-10">
-            Aman Kumar Singh — Problem Solver
+            Aman Kumar Singh  Problem Solver
           </p>
         </div>
       </div>

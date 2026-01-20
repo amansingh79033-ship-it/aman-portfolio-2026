@@ -23,7 +23,7 @@ const Impact: React.FC = () => {
                 The Efficiency <br /><span className="text-yellow-100">Peak.</span>
               </h2>
               <p className="text-slate-400 text-lg leading-relaxed font-light mb-8">
-                Operating in the 'Bharat Valley' means leveraging deep resilience. Aman built a ₹30Cr ecosystem with less than ₹3L investment—a testament to problem-solving over capital-burning.
+                Operating in the 'Bharat Valley' means leveraging deep resilience. Aman built a ₹30Cr ecosystem with less than ₹3L investment a testament to problem-solving over capital-burning.
               </p>
               <div className="flex items-center space-x-6">
                 <div className="h-[2px] w-20 bg-sky-400" />
