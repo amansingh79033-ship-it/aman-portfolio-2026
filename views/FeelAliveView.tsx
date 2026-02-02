@@ -3,9 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 // @ts-ignore
 import { useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion';
-import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle } from 'lucide-react';
+import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle, Shield, Wallet, Hourglass, Bike, Ghost, Rocket, Layers } from 'lucide-react';
 // @ts-ignore
 import { FloatingSphere, Interactive3DCanvas, ParticleField } from '../components/Interactive3DVisuals';
+import UniversalAudioPlayer from '../components/UniversalAudioPlayer';
 
 const FeelAliveView: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -250,6 +251,24 @@ const FeelAliveView: React.FC = () => {
             </div>
           </Section>
 
+          {/* Belief & Risk */}
+          <Section
+            icon={<Shield />}
+            title="Belief & Risk"
+            subtitle="The Architecture of Subconscious Priming"
+          >
+            <BeliefRiskContent />
+          </Section>
+
+          {/* Simple Explanation */}
+          <Section
+            icon={<Lightbulb />}
+            title="Let's make it simple"
+            subtitle="How to explain this to a 4th grader"
+          >
+            <SimpleExplanationContent />
+          </Section>
+
           {/* Final Manifesto */}
           <Section
             icon={<Sparkles />}
@@ -286,9 +305,9 @@ const FeelAliveView: React.FC = () => {
           {/* 3D Floating Elements for Final Manifesto */}
           <div className="absolute top-3/4 right-1/4 w-32 h-32 pointer-events-none">
             <Interactive3DCanvas>
-              <FloatingSphere 
-                position={[0, 0, 0]} 
-                color="#ec4899" 
+              <FloatingSphere
+                position={[0, 0, 0]}
+                color="#ec4899"
                 distort={0.5}
                 speed={2}
                 roughness={0.15}
@@ -301,6 +320,7 @@ const FeelAliveView: React.FC = () => {
 
         </div>
       </div>
+      <UniversalAudioPlayer />
     </div>
   );
 };
@@ -353,20 +373,20 @@ const Section: React.FC<{
         whileHover={{ scale: 1.02 }}
         className="text-center space-y-6 cursor-pointer"
       >
-        <motion.div 
+        <motion.div
           whileHover={{ rotate: 5, scale: 1.1 }}
           className={`w-16 h-16 rounded-2xl ${warning ? 'bg-red-500/10 text-red-400' : 'bg-sky-400/10 text-sky-400'} flex items-center justify-center mx-auto transition-all duration-300`}
         >
           {React.cloneElement(icon as any, { size: 32 })}
         </motion.div>
         <div>
-          <motion.h2 
+          <motion.h2
             whileHover={{ scale: 1.05 }}
             className="text-5xl md:text-6xl font-display font-bold text-white mb-3 transition-all duration-300"
           >
             {title}
           </motion.h2>
-          <motion.p 
+          <motion.p
             whileHover={{ scale: 1.02 }}
             className="text-slate-500 text-lg italic transition-all duration-300"
           >
@@ -553,6 +573,208 @@ const FinalCard: React.FC<{ title: string; content: string }> = ({ title, conten
     <h4 className="text-xl font-bold text-white mb-4 transition-colors duration-300 hover:text-sky-400">{title}</h4>
     <p className="text-slate-400 leading-relaxed transition-all duration-300 hover:text-slate-300">{content}</p>
   </motion.div>
+);
+
+const BeliefRiskContent: React.FC = () => {
+  return (
+    <div className="space-y-8">
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="glass rounded-3xl p-8 md:p-12 border border-white/10 bg-gradient-to-b from-white/5 to-transparent relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-32 bg-sky-500/10 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row gap-12 relative z-10">
+          <div className="flex-1 space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Sparkles size={20} className="text-violet-400" />
+              <h3 className="text-xl font-bold text-white">Systemic Assessment: Belief Priming</h3>
+            </div>
+
+            <div className="space-y-4 text-slate-400 leading-relaxed">
+              <p>
+                <strong className="text-white">The Core Thesis:</strong> When the mind externalizes risk into objects or systems (like crash guards or insurance), it subconsciously permits the event it claims to protect against. This is <span className="text-violet-300">expectation rehearsal</span>.
+              </p>
+              <p>
+                The separation of <em className="text-white">self, object, and guard</em> creates a false modularity. In reality, these are a single coupled system. Treating them as separable introduces <strong className="text-white">lag in reaction loops</strong>—exactly where accidents happen.
+              </p>
+            </div>
+
+            <div className="pt-4">
+              <span className="text-xs font-bold uppercase tracking-widest text-sky-400">Bottom Line</span>
+              <p className="text-white italic mt-2 border-l-2 border-sky-500/30 pl-4">
+                "Evolution favors systems that integrate risk internally, not those that outsource it psychologically. The intuition is directionally correct."
+              </p>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-4 border-t md:border-t-0 md:border-l border-white/10 md:pl-12 pt-8 md:pt-0">
+            <h4 className="text-white font-bold mb-4">Key Frameworks:</h4>
+            <ul className="space-y-6">
+              <li className="group">
+                <span className="block text-white font-medium mb-1 group-hover:text-sky-400 transition-colors">Money as a Vector</span>
+                <span className="text-slate-500 text-sm">A multidimensional coordination problem, often restricted by fear-based hoarding.</span>
+              </li>
+              <li className="group">
+                <span className="block text-white font-medium mb-1 group-hover:text-sky-400 transition-colors">DeltaTH Intuition</span>
+                <span className="text-slate-500 text-sm">Misplaced thoughts that miss their recall window mutate and interfere with downstream cognitive calculations.</span>
+              </li>
+              <li className="group">
+                <span className="block text-white font-medium mb-1 group-hover:text-sky-400 transition-colors">Biological Integration</span>
+                <span className="text-slate-500 text-sm">Evolution favors systems that integrate risk internally, not those that outsource it psychologically.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        <VisualCard
+          title="The Crash Guard Paradox"
+          description="Splitting the system creates 'chunks' of failure."
+          color="sky"
+        >
+          <CrashGuardVisual />
+        </VisualCard>
+        <VisualCard
+          title="Money Vector"
+          description="Fear collapses your future options."
+          color="violet"
+        >
+          <MoneyVectorVisual />
+        </VisualCard>
+        <VisualCard
+          title="DeltaTH Decay"
+          description="Misplaced thoughts create cognitive noise."
+          color="rose"
+        >
+          <DeltaTHVisual />
+        </VisualCard>
+      </div>
+    </div>
+  );
+};
+
+const SimpleExplanationContent: React.FC = () => {
+  return (
+    <div className="grid md:grid-cols-3 gap-8">
+      <SimpleCard
+        title="The Bike Trick"
+        description="If you wear knee pads and think 'I can't get hurt,' you might stop paying attention. Focus on being a great rider instead!"
+        icon={<Bike size={32} />}
+        color="rose"
+      />
+      <SimpleCard
+        title="The Magic Jar"
+        description="Saving money because you're scared of 'monsters' creates fear. Saving for 'adventures' builds a rocket ship!"
+        icon={<Wallet size={32} />}
+        color="amber"
+      />
+      <SimpleCard
+        title="The Missed Joke"
+        description="Thinking of a joke on Monday but telling it on Tuesday isn't funny. It's 'cluttered' because it's in the wrong spot."
+        icon={<Brain size={32} />}
+        color="pink"
+      />
+    </div>
+  );
+};
+
+const VisualCard: React.FC<{ title: string; description: string; color: string; children: React.ReactNode }> = ({ title, description, color, children }) => {
+  const colors = {
+    sky: 'from-sky-500/10 to-sky-500/5 border-sky-500/20 shadow-sky-500/10',
+    violet: 'from-violet-500/10 to-violet-500/5 border-violet-500/20 shadow-violet-500/10',
+    rose: 'from-rose-500/10 to-rose-500/5 border-rose-500/20 shadow-rose-500/10',
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -5, scale: 1.02, rotateX: 2, rotateY: 2 }}
+      className={`glass rounded-2xl p-6 border bg-gradient-to-br ${colors[color as keyof typeof colors]} cursor-pointer group relative overflow-hidden h-full flex flex-col`}
+    >
+      <div className="h-40 mb-6 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-white/10 transition-colors">
+        {children}
+      </div>
+      <div className="mt-auto">
+        <h4 className="text-white font-bold mb-2 group-hover:text-white transition-colors">{title}</h4>
+        <div className="w-8 h-[2px] bg-white/20 mb-3 group-hover:w-full transition-all duration-500" />
+        <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+      </div>
+    </motion.div>
+  );
+};
+
+const SimpleCard: React.FC<{ title: string; description: string; icon: React.ReactNode; color: string }> = ({ title, description, icon, color }) => {
+  const styles = {
+    rose: 'bg-rose-500/10 text-rose-400 ring-rose-500/20 group-hover:bg-rose-500/20',
+    amber: 'bg-amber-500/10 text-amber-400 ring-amber-500/20 group-hover:bg-amber-500/20',
+    pink: 'bg-pink-500/10 text-pink-400 ring-pink-500/20 group-hover:bg-pink-500/20',
+    sky: 'bg-sky-500/10 text-sky-400 ring-sky-500/20 group-hover:bg-sky-500/20',
+  };
+  const styleClass = styles[color as keyof typeof styles] || styles.sky;
+
+  return (
+    <motion.div whileHover={{ scale: 1.05 }} className="flex gap-6 items-start group cursor-pointer">
+      <motion.div
+        whileHover={{ rotate: 10, scale: 1.1 }}
+        className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ring-1 transition-all ${styleClass}`}
+      >
+        {icon}
+      </motion.div>
+      <div className="space-y-2">
+        <h4 className="text-xl font-bold text-white transition-colors">{title}</h4>
+        <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+      </div>
+    </motion.div>
+  );
+};
+
+const CrashGuardVisual: React.FC = () => (
+  <div className="relative w-full h-full flex items-center justify-center">
+    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity }} className="relative">
+      <motion.div
+        className="absolute -top-12 -left-8 w-32 h-32 border-2 border-sky-500/30 rounded-full"
+        animate={{ borderColor: ['rgba(14, 165, 233, 0.3)', 'rgba(14, 165, 233, 0.6)', 'rgba(14, 165, 233, 0.3)'] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      <div className="flex gap-2">
+        <motion.div whileHover={{ scale: 1.2 }} className="w-8 h-8 rounded-full bg-sky-400 blur-[2px]" />
+        <motion.div whileHover={{ scale: 1.2 }} className="w-8 h-8 rounded-full bg-white blur-[2px]" />
+      </div>
+      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-sky-400 uppercase tracking-widest whitespace-nowrap">False Barrier</div>
+    </motion.div>
+  </div>
+);
+
+const MoneyVectorVisual: React.FC = () => (
+  <svg viewBox="0 0 100 60" className="w-full h-full p-4">
+    <path d="M10,50 L90,50 M10,10 L10,50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+    <motion.path
+      d="M10,50 Q50,45 80,20" stroke="rgba(167, 139, 250, 0.5)" strokeWidth="2" strokeDasharray="4 2" fill="none"
+    />
+    <motion.path
+      d="M10,50 Q50,55 90,50" stroke="#a78bfa" strokeWidth="3" fill="none"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+    />
+    <circle cx="90" cy="50" r="3" fill="#a78bfa" />
+    <text x="50" y="58" fontSize="4" fill="#a78bfa" textAnchor="middle">Fear Collapses Potential</text>
+  </svg>
+);
+
+const DeltaTHVisual: React.FC = () => (
+  <div className="flex items-center gap-2 w-full justify-center">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <motion.div
+        key={i}
+        className={`w-8 h-8 rounded-lg border ${i === 3 ? 'border-rose-500 bg-rose-500/20' : 'border-white/10 bg-white/5'} flex items-center justify-center`}
+        animate={{ y: i === 3 ? [0, -10, 0] : 0, opacity: i > 3 ? 0.3 : 1 }}
+        transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+      >
+        {i === 3 && <Zap size={12} className="text-rose-400" />}
+      </motion.div>
+    ))}
+    <div className="absolute bottom-4 text-[8px] text-rose-400 uppercase tracking-widest">Missed Timing Error</div>
+  </div>
 );
 
 export default FeelAliveView;

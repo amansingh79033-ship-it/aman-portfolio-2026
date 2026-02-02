@@ -56,15 +56,16 @@ interface Interactive3DCanvasProps {
 
 export const Interactive3DCanvas: React.FC<Interactive3DCanvasProps> = ({ children }) => {
   return (
-    <Canvas 
+    <Canvas
       camera={{ position: [0, 0, 5], fov: 75 }}
-      style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
         height: '100%',
-        zIndex: 0
+        zIndex: 1,
+        pointerEvents: 'none'
       }}
     >
       <ambientLight intensity={0.5} />
