@@ -1,107 +1,70 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Play, Pause, Square, Settings, Volume2, Globe, Sparkles, Mic2 } from 'lucide-react';
+import { Play, Pause, Square, Globe, Volume2, Mic2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Types & Constants ---
 
 interface TranslationData {
     [key: string]: {
-        text: string;
-        langCode: string; // BCP 47 tag
         nativeName: string;
+        langCode: string; // BCP 47
+        sections: {
+            title: string;
+            content: string;
+        }[];
     };
 }
 
-// Pre-translated manifesto text for "zero latency" playback
-const MANIFESTO_TRANSLATIONS: TranslationData = {
+// Full page narration data
+const FULL_NARRATION: TranslationData = {
     english: {
-        text: "The mind is alive. Watch it like a display. Let thoughts pass.",
+        nativeName: 'English',
         langCode: 'en-US',
-        nativeName: 'English'
+        sections: [
+            { title: "Introduction", content: "The mind is alive. Watch it like a display. Let thoughts pass. Most people treat their mind like a storage device, but it is actually a living system." },
+            { title: "Dimensional Thinking", content: "We often think in two dimensions: text and emotion. But true intelligence is multidimensional. Children understand this intuitively until they are taught to think linearly." },
+            { title: "The Crash Guard Paradox", content: "Consider a bike's crash guard. When you add protection, your mind subconsciously permits more risk. You stop being a great rider because you believe the guard will save you. This externalization of risk creates the very failure it tries to prevent." },
+            { title: "The Money Vector", content: "Money is not just a number; it is a vector of potential. When you save out of fear, you collapse your future options. When you save for adventure, you build a rocket ship." },
+            { title: "Learning & Mentors", content: "True learning happens when there is no third party. Teachers often bias your learning with their own limits. Approach a mentor to connect dots, but let the understanding be yours alone." }
+        ]
     },
     hindi: {
-        text: "मन जीवित है। इसे एक प्रदर्शन की तरह देखें। विचारों को गुजरने दें।",
+        nativeName: 'हिन्दी (Hindi)',
         langCode: 'hi-IN',
-        nativeName: 'हिन्दी (Hindi)'
+        sections: [
+            { title: "प्रस्तावना", content: "मन जीवित है। इसे एक प्रदर्शन की तरह देखें। विचारों को गुजरने दें। बहुत से लोग अपने मन को स्टोरेज डिवाइस की तरह मानते हैं, लेकिन यह वास्तव में एक जीवित प्रणाली है।" },
+            { title: "आयामी सोच", content: "हम अक्सर दो आयामों में सोचते हैं: शब्द और भावना। लेकिन वास्तविक बुद्धिमत्ता बहुआयामी होती है। बच्चे इसे तब तक सहज रूप से समझते हैं जब तक उन्हें रैखिक रूप से सोचना नहीं सिखाया जाता।" },
+            { title: "क्रैश गार्ड विरोधाभास", content: "बाइक के क्रैश गार्ड के बारे में सोचें। जब आप सुरक्षा जोड़ते हैं, तो आपका मन अनजाने में अधिक जोखिम लेने की अनुमति देता है। आप एक बेहतरीन राइडर बनना बंद कर देते हैं क्योंकि आपको लगता है कि गार्ड आपको बचा लेगा। जोखिम का यह बाहरीकरण उसी विफलता को जन्म देता है जिसे वह रोकने की कोशिश करता है।" },
+            { title: "धन का वेक्टर", content: "पैसा केवल एक संख्या नहीं है; यह क्षमता का एक वेक्टर है। जब आप डर के कारण बचत करते हैं, तो आप अपने भविष्य के विकल्पों को खत्म कर देते हैं। जब आप रोमांच के लिए बचत करते हैं, तो आप एक रॉकेट शिप बनाते हैं।" },
+            { title: "सीखना और गुरु", content: "सच्ची सीख तब होती है जब कोई तीसरा पक्ष न हो। शिक्षक अक्सर अपनी सीमाओं के साथ आपकी सीख को प्रभावित करते हैं। डॉट्स को जोड़ने के लिए किसी गुरु के पास जाएं, लेकिन समझ केवल आपकी होनी चाहिए।" }
+        ]
     },
     maithili: {
-        text: "मन जीवित अछि। एकरा प्रदर्शन जकां देखू। विचार सब के बितय दियौ।",
-        langCode: 'hi-IN', // Maithili often uses Hindi TTS voice if specific not avail
-        nativeName: 'मैथिली (Maithili)'
+        nativeName: 'मैथिली (Maithili)',
+        langCode: 'hi-IN',
+        sections: [
+            { title: "प्रारंभ", content: "मन जीवित अछि। एकरा प्रदर्शन जकां देखू। विचार सब के बितय दियौ।" },
+            { title: "क्रैश गार्ड", content: "बाइक में क्रैश गार्ड लगावे स अहाँक मन अधिक जोखिम लेवाक अनुमति दैत अछि। अहाँ एकटा नीक राइडर बनब बन्द कऽ दय छी किअक त अहाँक मन में रहैत अछि जे गार्ड रक्षा कऽ लेत।" },
+            { title: "पैसा", content: "पैसा केवल अंक नहि थिक, ई अहाँक भविष्यक क्षमता थिक। डर स पैसा जमा करब त अहाँक विकल्प कम भऽ जाएत।" }
+        ]
     },
     bhojpuri: {
-        text: "मन जिंदा बा। एकरा के डिस्प्ले लेखा देखीं। विचारन के आवे-जाए दीं।",
-        langCode: 'hi-IN', // Fallback to Hindi voice
-        nativeName: 'भोजपुरी (Bhojpuri)'
+        nativeName: 'भोजपुरी (Bhojpuri)',
+        langCode: 'hi-IN',
+        sections: [
+            { title: "सुरआत", content: "मन जिंदा बा। एकरा के डिस्प्ले लेखा देखीं। विचारन के आवे-जाए दीं।" },
+            { title: "साइकिल वाला बात", content: "जब रउआ मोटरसाइकिल में गार्ड लगवा लेब त रउआ मन में बेसी रिस्क लेवे के बात आ जाई। रउआ सोचीं कि ई गार्ड बचा ली, लेकिन असल में ई रिस्क बढ़ा देला।" }
+        ]
     },
     sanskrit: {
-        text: "मनः जीवन्तम् अस्ति। तत् प्रदर्शकम् इव पश्य। विचारान् गच्छन्तु।",
-        langCode: 'hi-IN', // Sanskrit reads well with Hindi voice
-        nativeName: 'संस्कृतम् (Sanskrit)'
-    },
-    spanish: {
-        text: "La mente está viva. Obsérvala como una pantalla. Deja pasar los pensamientos.",
-        langCode: 'es-ES',
-        nativeName: 'Español'
-    },
-    german: {
-        text: "Der Geist ist lebendig. Betrachte ihn wie einen Bildschirm. Lass Gedanken vorbeiziehen.",
-        langCode: 'de-DE',
-        nativeName: 'Deutsch'
-    },
-    malayalam: {
-        text: "മനസ്സ് ജീവനുള്ളതാണ്. ഒരു ഡിസ്പ്ലേ പോലെ അതിനെ കാണുക. ചിന്തകളെ കടന്നുപോകാൻ അനുവദിക്കുക.",
-        langCode: 'ml-IN',
-        nativeName: 'മലയാളം (Malayalam)'
-    },
-    tamil: {
-        text: "மனம் உயிருள்ளது. அதை ஒரு திரை போல பாருங்கள். எண்ணங்களை கடந்து செல்ல விடுங்கள்.",
-        langCode: 'ta-IN',
-        nativeName: 'தமிழ் (Tamil)'
-    },
-    telugu: {
-        text: "మనస్సు సజీవంగా ఉంది. దానిని ఒక ప్రదర్శనలా చూడండి. ఆలోచనలను వెళ్లనివ్వండి.",
-        langCode: 'te-IN',
-        nativeName: 'తెలుగు (Telugu)'
-    },
-    kannada: {
-        text: "ಮನಸ್ಸು ಜೀವಂತವಾಗಿದೆ. ಅದನ್ನು ಪ್ರದರ್ಶನದಂತೆ ನೋಡಿ. ಆಲೋಚನೆಗಳು ಹಾದುಹೋಗಲಿ.",
-        langCode: 'kn-IN',
-        nativeName: 'ಕನ್ನಡ (Kannada)'
-    },
-    arabic: {
-        text: "العقل حي. شاهده كشاشة عرض. دعه الأفكار تمر.",
-        langCode: 'ar-SA',
-        nativeName: 'العربية (Arabic)'
-    },
-    urdu: {
-        text: "ذہن زندہ ہے۔ اسے ایک ڈسپلے کی طرح دیکھیں۔ خیالات کو گزرنے دیں۔",
-        langCode: 'ur-PK',
-        nativeName: 'اردو (Urdu)'
-    },
-    farsi: {
-        text: "ذهن زنده است. آن را مانند یک نمایشگر تماشا کنید. بگذارید افکار عبور کنند.",
-        langCode: 'fa-IR',
-        nativeName: 'فارسی (Persian)'
-    },
-    chinese: {
-        text: "思想是鲜活的。像看显示屏一样观察它。让思绪飘过。",
-        langCode: 'zh-CN',
-        nativeName: '中文 (Chinese)'
-    },
-    korean: {
-        text: "마음은 살아있습니다. 디스플레이처럼 지켜보세요. 생각들이 지나가게 두세요.",
-        langCode: 'ko-KR',
-        nativeName: '한국어 (Korean)'
-    },
-    scottish: {
-        text: "The mind is alive. Watch it like a show. Let thoughts gang by.",
-        langCode: 'en-GB', // Will prefer UK/Scottish voices
-        nativeName: 'Scottish'
+        nativeName: 'संस्कृतम् (Sanskrit)',
+        langCode: 'hi-IN',
+        sections: [
+            { title: "मंगलाचरणम्", content: "मनः जीवन्तम् अस्ति। तत् प्रदर्शकम् इव पश्य। विचारान् गच्छन्तु।" },
+            { title: "बोधः", content: "शिक्षकः न केवलं पाठयति, सः अज्ञानं अपि ददाति। वास्तविकं ज्ञानं अन्तः अस्ति।" }
+        ]
     }
 };
-
-// --- Component ---
 
 const UniversalAudioPlayer: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -109,227 +72,176 @@ const UniversalAudioPlayer: React.FC = () => {
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('english');
     const [rate, setRate] = useState(1);
-    const [gender, setGender] = useState<'male' | 'female' | 'any'>('any');
+    const [gender, setGender] = useState<'male' | 'female'>('female');
+    const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
-    // Synthesis Ref
     const synth = useRef<SpeechSynthesis | null>(null);
-    const utterance = useRef<SpeechSynthesisUtterance | null>(null);
 
-    // Initialize Voices
     useEffect(() => {
         if (typeof window !== 'undefined') {
             synth.current = window.speechSynthesis;
-
-            const loadVoices = () => {
-                let available = synth.current?.getVoices() || [];
-                // Sort for better UX: Google/Microsoft voices first (higher quality)
-                available = available.sort((a, b) => {
-                    const aScore = a.name.includes('Google') || a.name.includes('Microsoft') ? 1 : 0;
-                    const bScore = b.name.includes('Google') || b.name.includes('Microsoft') ? 1 : 0;
-                    return bScore - aScore;
-                });
-                setVoices(available);
-            };
-
+            const loadVoices = () => setVoices(synth.current?.getVoices() || []);
             loadVoices();
             window.speechSynthesis.onvoiceschanged = loadVoices;
-
-            return () => {
-                window.speechSynthesis.cancel();
-            };
         }
     }, []);
 
-    // Filtered Voices based on Language & Gender
-    const availableVoices = useMemo(() => {
-        const langCode = MANIFESTO_TRANSLATIONS[selectedLanguage].langCode;
-        return voices.filter(v => {
-            // Match Language code broadly (e.g. en-US matches en)
-            const langMatch = v.lang.startsWith(langCode.split('-')[0]);
-
-            // Gender Heuristics (Basic)
-            // Most reliable voices have gender in name, or we rely on user preference finding a voice
-            // Note: Web Speech API often doesn't expose gender property directly standardly.
-            // We'll trust the user to select from the filtered list if we can't detect.
-            // But we can filter play request.
-            return langMatch;
-        });
-    }, [voices, selectedLanguage]);
-
-    // Handle Play
-    const handlePlay = () => {
+    const handlePlayPause = () => {
         if (!synth.current) return;
 
-        // Cancel existing
+        if (isPlaying) {
+            synth.current.pause();
+            setIsPlaying(false);
+        } else {
+            if (synth.current.paused) {
+                synth.current.resume();
+                setIsPlaying(true);
+            } else {
+                speakSection(currentSectionIndex);
+            }
+        }
+    };
+
+    const speakSection = (index: number) => {
+        if (!synth.current) return;
         synth.current.cancel();
 
-        const data = MANIFESTO_TRANSLATIONS[selectedLanguage];
-        const newUtterance = new SpeechSynthesisUtterance(data.text);
+        const langData = FULL_NARRATION[selectedLanguage] || FULL_NARRATION['english'];
+        const section = langData.sections[index];
+        if (!section) return;
 
-        // Find Best Voice
-        // 1. Match Language Exact
-        // 2. Match Gender Preference if implicit in name (e.g. "Google Hindi" is usually female, "Microsoft" often has names)
-        let targetVoice = voices.find(v => v.lang === data.langCode && (gender === 'any' || checkVoiceGender(v.name, gender)));
+        const utterance = new SpeechSynthesisUtterance(section.content);
+        utterance.rate = rate;
 
-        // Fallback: Just language match
-        if (!targetVoice) {
-            targetVoice = voices.find(v => v.lang.startsWith(data.langCode.split('-')[0]));
-        }
+        // Voice Selection Logic
+        const targetVoice = voices.find(v =>
+            v.lang.startsWith(langData.langCode.split('-')[0]) &&
+            (gender === 'female' ? /female|zira|samantha|google/i.test(v.name) : /male|david|mark/i.test(v.name))
+        ) || voices.find(v => v.lang.startsWith(langData.langCode.split('-')[0]));
 
-        // Special handling for Scottish
-        if (selectedLanguage === 'scottish') {
-            const scotVoice = voices.find(v => v.lang === 'en-GB' && (v.name.includes('Scotland') || v.name.includes('UK')));
-            if (scotVoice) targetVoice = scotVoice;
-        }
+        if (targetVoice) utterance.voice = targetVoice;
 
-        if (targetVoice) {
-            newUtterance.voice = targetVoice;
-        }
+        utterance.onend = () => {
+            if (index < langData.sections.length - 1) {
+                setCurrentSectionIndex(index + 1);
+                speakSection(index + 1);
+            } else {
+                setIsPlaying(false);
+                setCurrentSectionIndex(0);
+            }
+        };
 
-        newUtterance.rate = rate;
-        newUtterance.pitch = 1;
-        newUtterance.volume = 1;
-
-        newUtterance.onend = () => setIsPlaying(false);
-        newUtterance.onerror = (e) => {
-            console.error("TTS Error", e);
-            setIsPlaying(false);
-        }
-
-        utterance.current = newUtterance;
-        synth.current.speak(newUtterance);
+        synth.current.speak(utterance);
         setIsPlaying(true);
+        setCurrentSectionIndex(index);
     };
 
     const handleStop = () => {
-        if (synth.current) {
-            synth.current.cancel();
-            setIsPlaying(false);
-        }
+        synth.current?.cancel();
+        setIsPlaying(false);
+        setCurrentSectionIndex(0);
     };
 
-    // Helper: Guess gender from voice name
-    const checkVoiceGender = (name: string, target: 'male' | 'female'): boolean => {
-        const n = name.toLowerCase();
-        if (target === 'female') return n.includes('female') || n.includes('google') || n.includes('zira') || n.includes('samantha');
-        if (target === 'male') return n.includes('male') || n.includes('david') || n.includes('mark');
-        return true;
-    };
+    const langData = FULL_NARRATION[selectedLanguage] || FULL_NARRATION['english'];
 
     return (
         <div className="fixed bottom-8 left-8 z-50 flex flex-col items-start gap-4">
-
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="glass border border-white/20 p-6 rounded-2xl w-80 shadow-2xl backdrop-blur-xl bg-black/80"
+                        className="glass border border-white/20 p-6 rounded-2xl w-85 shadow-2xl backdrop-blur-xl bg-black/90"
                     >
-                        {/* Header */}
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2 text-sky-400">
                                 <Globe size={16} />
-                                <span className="text-xs font-bold uppercase tracking-widest">Global Neural Voice</span>
+                                <span className="text-xs font-bold uppercase tracking-widest">Page Narration</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-[10px] text-slate-400">Online</span>
-                            </div>
+                            <button onClick={handleStop} className="text-slate-500 hover:text-white transition-colors">
+                                <Square size={14} />
+                            </button>
                         </div>
 
-                        {/* Language Selector */}
-                        <div className="space-y-4 mb-6">
+                        <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-500 font-mono">LANGUAGE / REGION</label>
+                                <label className="text-[10px] text-slate-500 font-mono uppercase">Language</label>
                                 <select
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500/50"
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-slate-200 focus:outline-none"
                                     value={selectedLanguage}
                                     onChange={(e) => {
                                         setSelectedLanguage(e.target.value);
                                         handleStop();
                                     }}
                                 >
-                                    {Object.entries(MANIFESTO_TRANSLATIONS).map(([key, val]) => (
-                                        <option key={key} value={key} className="bg-slate-900">
-                                            {val.nativeName}
-                                        </option>
+                                    {Object.entries(FULL_NARRATION).map(([key, val]) => (
+                                        <option key={key} value={key} className="bg-slate-900">{val.nativeName}</option>
                                     ))}
                                 </select>
                             </div>
-
-                            <div className="flex gap-4">
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-xs text-slate-500 font-mono">GENDER</label>
-                                    <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                                        <button
-                                            onClick={() => setGender('male')}
-                                            className={`flex-1 py-1 text-xs rounded-md transition-all ${gender === 'male' ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:text-white'}`}
-                                        >
-                                            M
-                                        </button>
-                                        <button
-                                            onClick={() => setGender('female')}
-                                            className={`flex-1 py-1 text-xs rounded-md transition-all ${gender === 'female' ? 'bg-pink-500/20 text-pink-400' : 'text-slate-400 hover:text-white'}`}
-                                        >
-                                            F
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-xs text-slate-500 font-mono">SPEED: {rate}x</label>
-                                    <input
-                                        type="range"
-                                        min="0.5"
-                                        max="2"
-                                        step="0.1"
-                                        value={rate}
-                                        onChange={(e) => setRate(parseFloat(e.target.value))}
-                                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400"
-                                    />
+                            <div className="space-y-1">
+                                <label className="text-[10px] text-slate-500 font-mono uppercase">Voice</label>
+                                <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                                    <button onClick={() => { setGender('male'); handleStop(); }} className={`flex-1 py-1 text-[10px] rounded-md ${gender === 'male' ? 'bg-sky-500/20 text-sky-400' : 'text-slate-500'}`}>MALE</button>
+                                    <button onClick={() => { setGender('female'); handleStop(); }} className={`flex-1 py-1 text-[10px] rounded-md ${gender === 'female' ? 'bg-pink-500/20 text-pink-400' : 'text-slate-500'}`}>FEMALE</button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Controls */}
-                        <div className="flex items-center gap-4">
+                        <div className="bg-black/50 rounded-xl p-4 border border-white/5 mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-bold text-sky-400 uppercase tracking-tighter">
+                                    {langData.sections[currentSectionIndex]?.title}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-mono">
+                                    {currentSectionIndex + 1} / {langData.sections.length}
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed italic h-24 overflow-y-auto custom-scrollbar pr-2">
+                                "{langData.sections[currentSectionIndex]?.content}"
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
                             <button
-                                onClick={isPlaying ? handleStop : handlePlay}
-                                className={`flex-1 py-3 type="button" rounded-xl flex items-center justify-center gap-2 font-bold transition-all ${isPlaying
-                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                        : 'bg-gradient-to-r from-sky-500 to-violet-500 text-white shadow-lg hover:shadow-sky-500/25'
+                                onClick={() => speakSection(Math.max(0, currentSectionIndex - 1))}
+                                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button
+                                onClick={handlePlayPause}
+                                className={`flex-1 h-12 rounded-full flex items-center justify-center gap-3 font-bold transition-all ${isPlaying
+                                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                        : 'bg-gradient-to-r from-sky-500 to-violet-500 text-white shadow-lg'
                                     }`}
                             >
-                                {isPlaying ? (
-                                    <>
-                                        <Square size={16} fill="currentColor" />
-                                        <span>STOP</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play size={16} fill="currentColor" />
-                                        <span>LISTEN</span>
-                                    </>
-                                )}
+                                {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+                                <span>{isPlaying ? 'PAUSE' : 'START JOURNEY'}</span>
+                            </button>
+                            <button
+                                onClick={() => speakSection(Math.min(langData.sections.length - 1, currentSectionIndex + 1))}
+                                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                            >
+                                <ChevronRight size={20} />
                             </button>
                         </div>
 
-                        {/* Text Preview */}
-                        <div className="mt-4 p-3 rounded-lg bg-black/40 border border-white/5 text-xs text-slate-400 italic leading-relaxed min-h-[60px]">
-                            "{MANIFESTO_TRANSLATIONS[selectedLanguage].text}"
+                        <div className="mt-4 flex items-center gap-3">
+                            <Volume2 size={12} className="text-slate-500" />
+                            <input type="range" min="0.5" max="2" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
+                            <span className="text-[10px] text-slate-500 font-mono">{rate}x</span>
                         </div>
-
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Toggle Button */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full glass border border-white/20 flex items-center justify-center shadow-2xl transition-all ${isOpen ? 'bg-white/10 text-white' : 'bg-black/40 text-sky-400 hover:text-white'}`}
+                className={`w-14 h-14 rounded-full glass border border-white/20 flex items-center justify-center shadow-2xl transition-all ${isOpen ? 'bg-white/10 text-white' : 'bg-black/40 text-sky-400'}`}
             >
                 {isOpen ? <Volume2 size={24} /> : <Mic2 size={24} />}
             </motion.button>
