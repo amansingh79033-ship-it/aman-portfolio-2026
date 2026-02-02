@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+// @ts-ignore
 import { motion } from 'framer-motion';
+// @ts-ignore
 import { useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion';
 import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle } from 'lucide-react';
+// @ts-ignore
+import { FloatingSphere, Interactive3DCanvas, ParticleField } from '../components/Interactive3DVisuals';
 
 const FeelAliveView: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +87,8 @@ const FeelAliveView: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-6 pb-32 space-y-48">
 
+
+
           {/* Dimensional Thinking */}
           <Section
             icon={<Brain />}
@@ -106,6 +112,8 @@ const FeelAliveView: React.FC = () => {
               "A thought has emotion. It has text. It has time. The dimension of thought is not linear."
             </ManifestoQuote>
           </Section>
+
+
 
           {/* Observation & Perception */}
           <Section
@@ -275,6 +283,22 @@ const FeelAliveView: React.FC = () => {
             </div>
           </Section>
 
+          {/* 3D Floating Elements for Final Manifesto */}
+          <div className="absolute top-3/4 right-1/4 w-32 h-32 pointer-events-none">
+            <Interactive3DCanvas>
+              <FloatingSphere 
+                position={[0, 0, 0]} 
+                color="#ec4899" 
+                distort={0.5}
+                speed={2}
+                roughness={0.15}
+                size={0.7}
+                floatSpeed={1.5}
+                rotationIntensity={0.5}
+              />
+            </Interactive3DCanvas>
+          </div>
+
         </div>
       </div>
     </div>
@@ -323,19 +347,33 @@ const Section: React.FC<{
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.8 }}
-      className="space-y-12"
+      className="space-y-12 relative"
     >
-      <div className="text-center space-y-6">
-        <div className={`w-16 h-16 rounded-2xl ${warning ? 'bg-red-500/10 text-red-400' : 'bg-sky-400/10 text-sky-400'} flex items-center justify-center mx-auto`}>
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        className="text-center space-y-6 cursor-pointer"
+      >
+        <motion.div 
+          whileHover={{ rotate: 5, scale: 1.1 }}
+          className={`w-16 h-16 rounded-2xl ${warning ? 'bg-red-500/10 text-red-400' : 'bg-sky-400/10 text-sky-400'} flex items-center justify-center mx-auto transition-all duration-300`}
+        >
           {React.cloneElement(icon as any, { size: 32 })}
-        </div>
+        </motion.div>
         <div>
-          <h2 className="text-5xl md:text-6xl font-display font-bold text-white mb-3">
+          <motion.h2 
+            whileHover={{ scale: 1.05 }}
+            className="text-5xl md:text-6xl font-display font-bold text-white mb-3 transition-all duration-300"
+          >
             {title}
-          </h2>
-          <p className="text-slate-500 text-lg italic">{subtitle}</p>
+          </motion.h2>
+          <motion.p 
+            whileHover={{ scale: 1.02 }}
+            className="text-slate-500 text-lg italic transition-all duration-300"
+          >
+            {subtitle}
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
       {children}
     </motion.section>
   );
@@ -348,13 +386,13 @@ const ThoughtDimension: React.FC<{
   highlighted?: boolean;
 }> = ({ dimension, description, color, highlighted }) => (
   <motion.div
-    whileHover={{ scale: 1.02 }}
-    className={`glass rounded-3xl p-10 border ${highlighted ? 'border-sky-400/30' : 'border-white/5'} relative overflow-hidden group`}
+    whileHover={{ scale: 1.02, rotateY: 5 }}
+    className={`glass rounded-3xl p-10 border ${highlighted ? 'border-sky-400/30' : 'border-white/5'} relative overflow-hidden group cursor-pointer`}
   >
-    <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+    <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 group-hover:opacity-10 transition-all duration-500`} />
     <div className="relative z-10">
-      <div className="text-6xl font-display font-bold text-white mb-6">{dimension}</div>
-      <p className="text-slate-400 leading-relaxed">{description}</p>
+      <div className="text-6xl font-display font-bold text-white mb-6 transition-transform duration-300 group-hover:scale-105">{dimension}</div>
+      <p className="text-slate-400 leading-relaxed transition-opacity duration-300 group-hover:text-slate-300">{description}</p>
     </div>
   </motion.div>
 );
@@ -364,9 +402,10 @@ const ManifestoQuote: React.FC<{ children: React.ReactNode; large?: boolean }> =
     initial={{ opacity: 0 }}
     whileInView={{ opacity: 1 }}
     viewport={{ once: true }}
-    className={`text-center ${large ? 'py-16' : 'py-12'}`}
+    whileHover={{ scale: 1.02 }}
+    className={`text-center ${large ? 'py-16' : 'py-12'} cursor-pointer transition-all duration-300 transform`}
   >
-    <p className={`${large ? 'text-3xl md:text-4xl' : 'text-xl md:text-2xl'} font-light italic text-slate-300 max-w-4xl mx-auto leading-relaxed`}>
+    <p className={`${large ? 'text-3xl md:text-4xl' : 'text-xl md:text-2xl'} font-light italic text-slate-300 max-w-4xl mx-auto leading-relaxed transition-all duration-300 hover:text-slate-100 hover:scale-105`}>
       {children}
     </p>
   </motion.div>
@@ -378,15 +417,15 @@ const ObservationCard: React.FC<{
   icon: React.ReactNode;
 }> = ({ title, description, icon }) => (
   <motion.div
-    whileHover={{ x: 10 }}
-    className="glass rounded-2xl p-8 border border-white/5 flex gap-6 group"
+    whileHover={{ x: 10, scale: 1.02 }}
+    className="glass rounded-2xl p-8 border border-white/5 flex gap-6 group cursor-pointer transition-all duration-300"
   >
-    <div className="w-12 h-12 rounded-xl bg-sky-400/10 flex items-center justify-center text-sky-400 flex-shrink-0 group-hover:bg-sky-400/20 transition-colors">
+    <div className="w-12 h-12 rounded-xl bg-sky-400/10 flex items-center justify-center text-sky-400 flex-shrink-0 group-hover:bg-sky-400/20 transition-all duration-300 transform group-hover:rotate-12 group-hover:scale-110">
       {React.cloneElement(icon as any, { size: 24 })}
     </div>
     <div>
-      <h4 className="text-xl font-bold text-white mb-3">{title}</h4>
-      <p className="text-slate-400 leading-relaxed">{description}</p>
+      <h4 className="text-xl font-bold text-white mb-3 transition-colors duration-300 group-hover:text-sky-400">{title}</h4>
+      <p className="text-slate-400 leading-relaxed transition-all duration-300 group-hover:text-slate-300 group-hover:pl-2">{description}</p>
     </div>
   </motion.div>
 );
@@ -404,16 +443,17 @@ const DigitalAmnesiaWarning: React.FC = () => {
 
   return (
     <motion.div
-      className={`glass rounded-3xl p-12 border border-red-500/20 relative overflow-hidden ${glitch ? 'animate-pulse' : ''}`}
+      whileHover={{ scale: 1.02, rotateY: 2 }}
+      className={`glass rounded-3xl p-12 border border-red-500/20 relative overflow-hidden ${glitch ? 'animate-pulse' : ''} cursor-pointer transition-all duration-300`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent" />
       <div className="relative z-10 text-center space-y-6">
-        <div className="text-red-400 text-sm font-bold uppercase tracking-[0.3em]">Warning</div>
-        <h3 className="text-3xl md:text-4xl font-display font-bold text-white">
+        <div className="text-red-400 text-sm font-bold uppercase tracking-[0.3em] transition-transform duration-300 hover:scale-105">Warning</div>
+        <h3 className="text-3xl md:text-4xl font-display font-bold text-white transition-all duration-300 hover:text-red-400">
           The information you consume <br className="hidden md:block" />
-          <span className="text-red-400">becomes</span> your intelligence
+          <span className="text-red-400 transition-colors duration-300 hover:text-white">becomes</span> your intelligence
         </h3>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed transition-all duration-300 hover:text-slate-300">
           Artificial intelligence is not evolving naturally; it is fed artificially. Call it AI, call it anything it's shaped by artificial sources.
         </p>
       </div>
@@ -422,32 +462,35 @@ const DigitalAmnesiaWarning: React.FC = () => {
 };
 
 const InfoCard: React.FC<{ title: string; content: string }> = ({ title, content }) => (
-  <div className="glass rounded-2xl p-8 border border-white/5">
-    <h4 className="text-xl font-bold text-white mb-4">{title}</h4>
-    <p className="text-slate-400 leading-relaxed">{content}</p>
-  </div>
+  <motion.div
+    whileHover={{ scale: 1.03, y: -5 }}
+    className="glass rounded-2xl p-8 border border-white/5 cursor-pointer transition-all duration-300"
+  >
+    <h4 className="text-xl font-bold text-white mb-4 transition-colors duration-300 hover:text-sky-400">{title}</h4>
+    <p className="text-slate-400 leading-relaxed transition-all duration-300 hover:text-slate-300 hover:pl-2">{content}</p>
+  </motion.div>
 );
 
 const DualSystemViz: React.FC = () => (
   <div className="grid md:grid-cols-2 gap-8">
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group"
+      whileHover={{ scale: 1.02, rotateX: 5 }}
+      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group cursor-pointer transition-all duration-500"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
       <div className="relative z-10">
-        <div className="text-5xl font-display font-bold text-yellow-400 mb-4">System 1</div>
-        <div className="space-y-3 text-slate-400">
-          <div className="flex items-center gap-3">
-            <Zap size={20} className="text-yellow-400" />
+        <div className="text-5xl font-display font-bold text-yellow-400 mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:text-yellow-300">System 1</div>
+        <div className="space-y-3 text-slate-400 transition-all duration-300 group-hover:text-slate-300">
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Zap size={20} className="text-yellow-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Fast & Instinctive</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Wind size={20} className="text-yellow-400" />
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Wind size={20} className="text-yellow-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Emotional & Automatic</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Sparkles size={20} className="text-yellow-400" />
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Sparkles size={20} className="text-yellow-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Intuitive Insights</span>
           </div>
         </div>
@@ -455,23 +498,23 @@ const DualSystemViz: React.FC = () => (
     </motion.div>
 
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group"
+      whileHover={{ scale: 1.02, rotateX: 5 }}
+      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group cursor-pointer transition-all duration-500"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
       <div className="relative z-10">
-        <div className="text-5xl font-display font-bold text-blue-400 mb-4">System 2</div>
-        <div className="space-y-3 text-slate-400">
-          <div className="flex items-center gap-3">
-            <Brain size={20} className="text-blue-400" />
+        <div className="text-5xl font-display font-bold text-blue-400 mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:text-blue-300">System 2</div>
+        <div className="space-y-3 text-slate-400 transition-all duration-300 group-hover:text-slate-300">
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Brain size={20} className="text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Slow & Analytical</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Droplets size={20} className="text-blue-400" />
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Droplets size={20} className="text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Deliberate & Effortful</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Compass size={20} className="text-blue-400" />
+          <div className="flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-2">
+            <Compass size={20} className="text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span>Logical Reasoning</span>
           </div>
         </div>
@@ -492,20 +535,23 @@ const ConceptCard: React.FC<{
   };
 
   return (
-    <div className={`glass rounded-2xl p-8 border bg-gradient-to-br ${colors[color as keyof typeof colors]}`}>
-      <h4 className="text-lg font-bold text-white mb-3">{title}</h4>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
-    </div>
+    <motion.div
+      whileHover={{ scale: 1.05, y: -3 }}
+      className={`glass rounded-2xl p-8 border bg-gradient-to-br ${colors[color as keyof typeof colors]} cursor-pointer transition-all duration-300`}
+    >
+      <h4 className="text-lg font-bold text-white mb-3 transition-colors duration-300 hover:text-sky-400">{title}</h4>
+      <p className="text-slate-400 text-sm leading-relaxed transition-all duration-300 hover:text-slate-300 hover:scale-105">{description}</p>
+    </motion.div>
   );
 };
 
 const FinalCard: React.FC<{ title: string; content: string }> = ({ title, content }) => (
   <motion.div
-    whileHover={{ y: -5 }}
-    className="glass rounded-2xl p-8 border border-white/5"
+    whileHover={{ y: -5, scale: 1.03, rotateY: 2 }}
+    className="glass rounded-2xl p-8 border border-white/5 cursor-pointer transition-all duration-300 transform"
   >
-    <h4 className="text-xl font-bold text-white mb-4">{title}</h4>
-    <p className="text-slate-400 leading-relaxed">{content}</p>
+    <h4 className="text-xl font-bold text-white mb-4 transition-colors duration-300 hover:text-sky-400">{title}</h4>
+    <p className="text-slate-400 leading-relaxed transition-all duration-300 hover:text-slate-300">{content}</p>
   </motion.div>
 );
 

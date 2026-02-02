@@ -1,7 +1,9 @@
 import React from 'react';
+// @ts-ignore
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, User, UserCheck, X, Music, Play, Volume2 } from 'lucide-react';
+import { Mic2, User, UserCheck, X, Music, Play, Volume2, Download } from 'lucide-react';
 import { useStore } from '../lib/store';
+import { generatePoemPDF } from '../utils/pdfUtils';
 
 interface PoemCardProps {
   setShowRecordingModal?: (show: boolean) => void;
@@ -590,6 +592,8 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
             </motion.div>
           )}
         </AnimatePresence>
+
+
       </div>
 
       {title && (
@@ -620,6 +624,27 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
 
       <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
       <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
+      
+      {/* Download Button - Bottom Right Corner */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => {
+          // Extract text content from the poem card
+          const poemContent = contentRef.current?.innerText || '';
+          const poemTitle = title || 'Untitled Poem';
+          generatePoemPDF(poemTitle, poemContent);
+        }}
+        className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center bg-white/5 hover:bg-emerald-400/20 rounded-full text-white/40 hover:text-emerald-400 transition-all border border-white/5 z-20"
+        title="Download as PDF"
+        onTouchStart={() => {
+          const poemContent = contentRef.current?.innerText || '';
+          const poemTitle = title || 'Untitled Poem';
+          generatePoemPDF(poemTitle, poemContent);
+        }}
+      >
+        <Download size={18} className="sm:w-5 sm:h-5" />
+      </motion.button>
     </motion.div>
   );
 
@@ -862,7 +887,7 @@ const MindspaceView = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           {/* Intro Verses */}
           <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
-            <PoemCard delay={0.1}>
+            <PoemCard title="इंतहाँ" delay={0.1}>
               <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
               <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।।</p>
               <div className="h-4" />

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+
 export interface Visit {
     id: string;
     ip: string;
@@ -73,32 +74,43 @@ interface AppState {
     removeSong: (id: string) => Promise<void>;
 }
 
-export const useStore = create<AppState>((set, get) => ({
-    visits: [],
-    messages: [],
-    frozenIps: [],
-    showcaseItems: [],
-    resources: [],
-    songs: [],
+export const useStore = create<AppState>((set, get) => {
+    // Load initial state from localStorage if available
+    const savedState = typeof window !== 'undefined' ? localStorage.getItem('app-storage') : null;
+    const initialState = savedState ? JSON.parse(savedState) : {
+        visits: [],
+        messages: [],
+        frozenIps: [],
+        showcaseItems: [],
+        resources: [],
+        songs: [],
+    };
 
-    fetchData: async () => {
-        try {
-            const res = await fetch('/api/data');
-            if (res.ok) {
-                const data = await res.json();
-                set({
-                    visits: data.visits || [],
-                    messages: data.messages || [],
-                    resources: data.resources || [],
-                    showcaseItems: data.showcaseItems || [],
-                    frozenIps: data.frozenIps || [],
-                    songs: data.songs || []
-                });
+    return {
+        ...initialState,
+
+        fetchData: async () => {
+            try {
+                const res = await fetch('/api/data');
+                if (res.ok) {
+                    const data = await res.json();
+                    set({
+                        visits: data.visits || [],
+                        messages: data.messages || [],
+                        resources: data.resources || [],
+                        showcaseItems: data.showcaseItems || [],
+                        frozenIps: data.frozenIps || [],
+                        songs: data.songs || []
+                    });
+                } else {
+                    // Fallback to current state if API fails
+                    console.warn('API fetch failed, keeping current state');
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+                // Keep current state if API fails
             }
-        } catch (error) {
-            console.error("Failed to fetch dashboard data:", error);
-        }
-    },
+        },
 
     addVisit: async (data) => {
         // Optimistic update
@@ -110,14 +122,17 @@ export const useStore = create<AppState>((set, get) => ({
         };
         set((state) => ({ visits: [visit, ...state.visits].slice(0, 1000) }));
 
-        // Server sync
+        // Server sync - only if API exists
         try {
-            await fetch('/api/data', {
+            const res = await fetch('/api/data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'addVisit', payload: data })
             });
-            await get().fetchData();
+            // Only fetch data if the API call was successful
+            if (res.ok) {
+                await get().fetchData();
+            }
         } catch (e) {
             console.error("Failed to sync visit", e);
         }
@@ -139,12 +154,18 @@ export const useStore = create<AppState>((set, get) => ({
             visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'frozen' } : v)
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'freezeIp', payload: { ip } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'freezeIp', payload: { ip } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync freezeIp", e);
+        }
     },
 
     unfreezeIp: async (ip) => {
@@ -153,12 +174,18 @@ export const useStore = create<AppState>((set, get) => ({
             visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'active' } : v)
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'unfreezeIp', payload: { ip } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'unfreezeIp', payload: { ip } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync unfreezeIp", e);
+        }
     },
 
     isIpFrozen: (ip) => get().frozenIps.includes(ip),
@@ -171,12 +198,18 @@ export const useStore = create<AppState>((set, get) => ({
                 item.id === id ? { ...item, image: base64 } : item
             )
         }));
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'setShowcaseImage', payload: { id, image: base64 } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'setShowcaseImage', payload: { id, image: base64 } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync setShowcaseImage", e);
+        }
     },
 
     addShowcaseFrame: async (image, title) => {
@@ -186,24 +219,36 @@ export const useStore = create<AppState>((set, get) => ({
             showcaseItems: [...state.showcaseItems, { id: tempId, image, title }]
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'addShowcaseFrame', payload: { image, title } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'addShowcaseFrame', payload: { image, title } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync addShowcaseFrame", e);
+        }
     },
 
     removeShowcaseFrame: async (id) => {
         set((state) => ({
             showcaseItems: state.showcaseItems.filter(item => item.id !== id)
         }));
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'removeShowcaseFrame', payload: { id } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'removeShowcaseFrame', payload: { id } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync removeShowcaseFrame", e);
+        }
     },
 
     reorderShowcase: (startIndex, endIndex) => set((state) => {
@@ -232,36 +277,54 @@ export const useStore = create<AppState>((set, get) => ({
             resources: [{ ...data, id: 'temp-' + Date.now(), downloads: 0, uploadedAt: Date.now() }, ...state.resources]
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'addResource', payload: data })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'addResource', payload: data })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync addResource", e);
+        }
     },
 
     removeResource: async (id) => {
         set((state) => ({
             resources: state.resources.filter(r => r.id !== id)
         }));
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'removeResource', payload: { id } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'removeResource', payload: { id } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync removeResource", e);
+        }
     },
 
     incrementDownloadCount: async (id) => {
         set((state) => ({
             resources: state.resources.map(r => r.id === id ? { ...r, downloads: r.downloads + 1 } : r)
         }));
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync incrementDownloadCount", e);
+        }
     },
 
     // Song Actions
@@ -270,12 +333,18 @@ export const useStore = create<AppState>((set, get) => ({
             songs: [{ ...data, id: 'temp-' + Date.now(), createdAt: Date.now() }, ...state.songs]
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'addSong', payload: data })
-        });
-        await get().fetchData();
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'addSong', payload: data })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync addSong", e);
+        }
     },
 
     removeSong: async (id) => {
@@ -283,11 +352,33 @@ export const useStore = create<AppState>((set, get) => ({
             songs: state.songs.filter(s => s.id !== id)
         }));
 
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'removeSong', payload: { id } })
-        });
-        await get().fetchData();
-    },
-}));
+        try {
+            const res = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'removeSong', payload: { id } })
+            });
+            if (res.ok) {
+                await get().fetchData();
+            }
+        } catch (e) {
+            console.error("Failed to sync removeSong", e);
+        }
+    }
+};});
+
+// Subscribe to state changes to persist to localStorage
+useStore.subscribe((state) => {
+    // Save only the data properties to storage
+    const stateToSave = {
+        visits: state.visits,
+        messages: state.messages,
+        frozenIps: state.frozenIps,
+        showcaseItems: state.showcaseItems,
+        resources: state.resources,
+        songs: state.songs,
+    };
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('app-storage', JSON.stringify(stateToSave));
+    }
+});

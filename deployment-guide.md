@@ -10,6 +10,7 @@ This project is optimized for a seamless deployment experience on [Vercel](https
 4. **Environment Variables**:
    - If you integrate Firebase in the future, add your `VITE_FIREBASE_*` variables here.
    - Currently, the app uses `localStorage` for data persistence, so no environment variables are strictly required for core functionality.
+   - For enhanced features, you may add `GEMINI_API_KEY` for AI-powered functionalities.
 5. **Deploy**: Click "Deploy".
 
 ## Project Optimizations

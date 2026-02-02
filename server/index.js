@@ -1,3 +1,5 @@
+import express from 'express';
+import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -79,6 +81,7 @@ app.post('/api/data', (req, res) => {
             saveDb();
             break;
 
+        case 'addMessage':
             db.messages.unshift({
                 ...payload,
                 id: Date.now().toString(),
@@ -91,7 +94,7 @@ app.post('/api/data', (req, res) => {
             db.songs.unshift({
                 ...payload,
                 id: Date.now().toString(),
-                created_at: Date.now()
+                createdAt: Date.now()
             });
             saveDb();
             break;
@@ -115,6 +118,7 @@ app.post('/api/data', (req, res) => {
             saveDb();
             break;
 
+        case 'addResource':
             db.resources.unshift({
                 ...payload,
                 id: Date.now().toString(),
@@ -134,6 +138,7 @@ app.post('/api/data', (req, res) => {
             saveDb();
             break;
 
+        case 'addShowcaseFrame':
             db.showcaseItems.push({
                 ...payload,
                 id: Date.now().toString()
