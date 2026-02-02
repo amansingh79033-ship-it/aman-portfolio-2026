@@ -15,6 +15,7 @@ import AdminDashboard from './views/AdminDashboard.tsx';
 import ResourcesView from './views/ResourcesView.tsx';
 import AhiReportView from './views/AhiReportView.tsx';
 import FeelAliveView from './views/FeelAliveView.tsx';
+import ExperienceView from './views/ExperienceView.tsx';
 import Footer from './components/Footer.tsx';
 import VisionModal from './components/VisionModal.tsx';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -126,6 +127,7 @@ const App = () => {
           <Hero onExplore={() => setView('systems')} onWatchVision={() => setIsVisionOpen(true)} />
           <SkillMatrix />
           <NeuralSync />
+          <ExperienceView />
         </>
       );
       case 'systems': return <InterestsView />;
