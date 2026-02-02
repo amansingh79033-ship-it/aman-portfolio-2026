@@ -6,12 +6,12 @@ import { ExternalLink, Layers, Database, Activity, Zap, Shield, Repeat, Globe } 
 const UnchiHaiBuildingView: React.FC = () => {
   const projects = [
     { name: "CuriousMinds.online", tagline: "AI-Driven Adaptive Learning Platform. Current Valuation: ₹30Cr.", sector: "AHI / EdTech", status: "Active Scaling", link: "https://curiousminds.online", icon: <Zap /> },
-    { name: "Propsynx.xyz", tagline: "One-tap property background verification and deep-dive analysis of the last 100 years.", sector: "PropTech", status: "MVP", icon: <Repeat />, link: "https://propsynx.xyz" },
+    { name: "propsync.xyz", tagline: "One-tap property background verification and deep-dive analysis of the last 100 years.", sector: "PropTech", status: "MVP", icon: <Repeat />, link: "https://propsync.xyz" },
     { name: "Propertyfie.com", tagline: "Decentralized Asset Management & Liquidity Protocol.", sector: "Real Estate", status: "Beta", icon: <Shield />, link: "https://amansingh79033-ship-it-propy.vercel.app/" },
     { name: "Floww.site", tagline: "Sovereign Workflow Orchestration & Automation Suite.", sector: "SaaS", status: "Internal", icon: <Activity />, link: "https://floww.site" },
-    { name: "Metric.wtf", tagline: "Real-time Market Forensics & Behavioral Analytics Lab.", sector: "Data Analytics", status: "Research", icon: <Database /> },
+    { name: "Metric.wtf", tagline: "Real-time Market Forensics & Behavioral Analytics Lab.", sector: "Data Analytics", status: "Research", icon: <Database />, link: "https://9000-firebase-studio-1766436327451.cluster-xpmcxs2fjnhg6xvn446ubtgpio.cloudworkstations.dev" },
     { name: "Engine Ocean", tagline: "Topic-focused advanced search engine with AI filtering for CuriousMinds Pro users.", sector: "AI / Search", status: "Active", icon: <Layers />, link: "https://copy-of-curiousminds-final-version.vercel.app/" },
-    { name: "ShareU", tagline: "Open-Source Infinite-Scale Media Transfer. Optional E2E encryption & size-agnostic propagation.", sector: "AdTech", status: "Profitably Lean", icon: <Globe />, link: "https://ipmetric.xyz" },
+    { name: "ShareU", tagline: "Open-Source Infinite-Scale Media Transfer. Optional E2E encryption & size-agnostic propagation.", sector: "AdTech", status: "Profitably Lean", icon: <Globe />, link: "https://share-u-two.vercel.app/" },
     { name: "AGENTref", tagline: "Headless Automation Engine with autonomous Gmail OTP extraction & flow completion.", sector: "Automated Workflows", status: "Early Access", icon: <Zap /> },
   ];
 
