@@ -1,7 +1,7 @@
 import React from 'react';
 // @ts-ignore
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, User, UserCheck, X, Music, Play, Volume2, Download } from 'lucide-react';
+import { Mic2, User, UserCheck, X, Music, Play, Volume2, Download, Pause, SkipBack, SkipForward, Headphones, Wind, Zap, Flame } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { generatePoemPDF } from '../utils/pdfUtils';
 
@@ -624,7 +624,7 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
 
       <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
       <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
-      
+
       {/* Download Button - Bottom Right Corner */}
       <motion.button
         whileHover={{ scale: 1.1 }}
@@ -884,6 +884,9 @@ const MindspaceView = () => {
           </div>
         </div>
 
+        {/* Smart Music Section */}
+        <MusicSection />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           {/* Intro Verses */}
           <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
@@ -1010,6 +1013,146 @@ const MindspaceView = () => {
         </div>
       </div>
     </>
+  );
+};
+
+const MusicCard: React.FC<{
+  title: string;
+  artist: string;
+  mood: string;
+  icon: React.ReactNode;
+  color: string;
+  isActive?: boolean;
+}> = ({ title, artist, mood, icon, color, isActive }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
+  const colors = {
+    sky: 'from-sky-500/20 to-sky-500/5 border-sky-500/20 text-sky-400',
+    violet: 'from-violet-500/20 to-violet-500/5 border-violet-500/20 text-violet-400',
+    rose: 'from-rose-500/20 to-rose-500/5 border-rose-500/20 text-rose-400',
+    amber: 'from-amber-500/20 to-amber-500/5 border-amber-500/20 text-amber-400',
+  };
+
+  const activeColor = colors[color as keyof typeof colors];
+
+  return (
+    <motion.div
+      whileHover={{ y: -5, scale: 1.02 }}
+      className={`glass rounded-[2rem] p-6 border bg-gradient-to-br ${activeColor} relative overflow-hidden group cursor-pointer`}
+      onClick={() => setIsPlaying(!isPlaying)}
+    >
+      <div className="flex items-center gap-6 relative z-10">
+        <motion.div
+          animate={isPlaying ? { rotate: 360 } : {}}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          className={`w-16 h-16 rounded-full flex items-center justify-center bg-black/40 border border-white/10 ${isPlaying ? 'shadow-[0_0_20px_rgba(255,255,255,0.1)]' : ''}`}
+        >
+          {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+        </motion.div>
+
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">{mood}</span>
+            {isPlaying && (
+              <div className="flex gap-1 h-3 items-end">
+                {[1, 2, 3, 4].map(i => (
+                  <motion.div
+                    key={i}
+                    animate={{ height: [4, 12, 4] }}
+                    transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
+                    className="w-0.5 bg-current"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          <h4 className="text-xl font-bold text-white mb-1">{title}</h4>
+          <p className="text-sm text-slate-400 font-light">{artist}</p>
+        </div>
+
+        <div className="opacity-20 group-hover:opacity-40 transition-opacity">
+          {icon}
+        </div>
+      </div>
+
+      {/* Background Animated Element */}
+      {isPlaying && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.1 }}
+          className="absolute inset-0 bg-white"
+        />
+      )}
+    </motion.div>
+  );
+};
+
+const MusicSection: React.FC = () => {
+  return (
+    <div className="mb-32 space-y-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 text-sky-400 mb-4"
+          >
+            <Headphones size={20} />
+            <span className="text-xs font-bold uppercase tracking-[0.4em]">Atmospheric Curation</span>
+          </motion.div>
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-display font-bold text-white italic"
+          >
+            Soundtracks of Reflection
+          </motion.h3>
+        </div>
+
+        <div className="flex gap-4">
+          <button className="p-4 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+            <SkipBack size={20} />
+          </button>
+          <button className="w-14 h-14 rounded-full bg-sky-500 text-white flex items-center justify-center hover:scale-105 transition-all shadow-lg shadow-sky-500/20">
+            <Play size={24} fill="currentColor" />
+          </button>
+          <button className="p-4 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+            <SkipForward size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MusicCard
+          title="Sufi Echoes"
+          artist="Bulle Shah Flow"
+          mood="Spiritual"
+          color="sky"
+          icon={<Wind size={40} />}
+        />
+        <MusicCard
+          title="Neural Calm"
+          artist="Mindfulness"
+          mood="Deep Focus"
+          color="violet"
+          icon={<Zap size={40} />}
+        />
+        <MusicCard
+          title="Sahir's Pulse"
+          artist="Desert Winds"
+          mood="Melancholic"
+          color="rose"
+          icon={<Flame size={40} />}
+        />
+        <MusicCard
+          title="The Aman Flow"
+          artist="Infinite Void"
+          mood="Multidimensional"
+          color="amber"
+          icon={<Headphones size={40} />}
+        />
+      </div>
+    </div>
   );
 };
 
