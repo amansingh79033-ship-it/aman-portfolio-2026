@@ -18,6 +18,7 @@ const experiences = [
             "Developing AI-driven assessment tools to provide personalized learning paths."
         ],
         color: "text-sky-400",
+        rgbValue: "56, 189, 248",
         border: "border-sky-500/30",
         bg: "bg-sky-500/10",
         glow: "shadow-sky-500/20",
@@ -39,6 +40,7 @@ const experiences = [
         ],
         skills: ["Terraform", "SRE", "Cloud Infra"],
         color: "text-red-400",
+        rgbValue: "248, 113, 113",
         border: "border-red-500/30",
         bg: "bg-red-500/10",
         glow: "shadow-red-500/20",
@@ -60,6 +62,7 @@ const experiences = [
         ],
         skills: ["Terraform", "Real Estate Investment", "Consulting"],
         color: "text-amber-400",
+        rgbValue: "251, 191, 36",
         border: "border-amber-500/30",
         bg: "bg-amber-500/10",
         glow: "shadow-amber-500/20",
@@ -80,6 +83,7 @@ const experiences = [
             "Contributed to the innovation roadmap for the next-gen travel booking engine."
         ],
         color: "text-emerald-400",
+        rgbValue: "52, 211, 153",
         border: "border-emerald-500/30",
         bg: "bg-emerald-500/10",
         glow: "shadow-emerald-500/20",
@@ -100,6 +104,7 @@ const experiences = [
             "Protected buyer accounts by proactively identifying compromised credentials."
         ],
         color: "text-orange-400",
+        rgbValue: "251, 146, 60",
         border: "border-orange-500/30",
         bg: "bg-orange-500/10",
         glow: "shadow-orange-500/20",
@@ -180,7 +185,7 @@ const ExperienceView: React.FC = () => {
                                     <div
                                         className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                         style={{
-                                            background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, ${exp.color.replace('text-', 'rgba(').replace('-400', ', 0.15)')}, transparent 60%)`.replace('rgba(sky', 'rgba(56, 189, 248').replace('rgba(red', 'rgba(248, 113, 113').replace('rgba(amber', 'rgba(251, 191, 36').replace('rgba(emerald', 'rgba(52, 211, 153').replace('rgba(orange', 'rgba(251, 146, 60')
+                                            background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(${(exp as any).rgbValue}, 0.15), transparent 60%)`
                                         }}
                                     />
 
@@ -188,7 +193,7 @@ const ExperienceView: React.FC = () => {
                                     <div
                                         className="absolute -inset-20 opacity-0 group-hover:opacity-30 transition-opacity duration-700 blur-[100px] -z-20 pointer-events-none"
                                         style={{
-                                            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, ${exp.color.replace('text-', 'rgba(').replace('-400', ', 0.4)')}, transparent 70%)`.replace('rgba(sky', 'rgba(56, 189, 248').replace('rgba(red', 'rgba(248, 113, 113').replace('rgba(amber', 'rgba(251, 191, 36').replace('rgba(emerald', 'rgba(52, 211, 153').replace('rgba(orange', 'rgba(251, 146, 60')
+                                            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(${(exp as any).rgbValue}, 0.4), transparent 70%)`
                                         }}
                                     />
 
