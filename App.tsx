@@ -18,6 +18,7 @@ import FeelAliveView from './views/FeelAliveView.tsx';
 import ExperienceView from './views/ExperienceView.tsx';
 import Footer from './components/Footer.tsx';
 import VisionModal from './components/VisionModal.tsx';
+import UniversalAudioPlayer from './components/UniversalAudioPlayer.tsx';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useStore } from './lib/store';
 import { ShieldAlert } from 'lucide-react';
@@ -193,6 +194,9 @@ const App = () => {
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.02),transparent_80%)]" />
         </div>
       )}
+
+      {/* Global Audio Controller */}
+      <UniversalAudioPlayer />
     </div>
   );
 };

@@ -24,7 +24,7 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [pausePosition, setPausePosition] = React.useState<number>(0);
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
+  const { currentAudio, stopAudio: stopGlobalAudio } = useStore();
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -82,9 +82,22 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
     speakActual(gender);
   };
 
+  // Stop TTS if global music starts
+  React.useEffect(() => {
+    if (currentAudio.isPlaying && isSpeaking) {
+      stopSpeaking();
+    }
+  }, [currentAudio.isPlaying, isSpeaking]);
+
   const speakActual = (gender: 'male' | 'female' | 'own') => {
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
+    // Signal to global store that we are "playing" something else if needed, 
+    // or just ensure music stops
+    if (useStore.getState().currentAudio.isPlaying) {
+      useStore.getState().pauseAudio();
+    }
+
     setPausePosition(0);
     setIsPaused(false);
 
@@ -651,6 +664,7 @@ const PoemCard = ({ setShowRecordingModal, title, children, className = "", dela
 };
 
 const MindspaceView = () => {
+  const [audioMode, setAudioMode] = React.useState<'curated' | 'narration'>('curated');
   // State for own voice feature (moved from PoemCard)
   const [showRecordingModal, setShowRecordingModal] = React.useState(false);
   const [recordingError, setRecordingError] = React.useState<string | null>(null);
@@ -900,6 +914,28 @@ const MindspaceView = () => {
               <p>वो टूट के भी मुस्कुरा रहा है अमन से ,</p>
               <p className="text-sky-200/80">कुछ भी था, वो रोने के क़ाबिल ना था।</p>
             </PoemCard>
+
+            <PoemCard title="क्या हूँ मैं?" delay={0.2}>
+              <p>जब लगेगा कुछ फिसल सा रहा है हाथों से…</p>
+              <p className="text-sky-200/80">कस के पकड़ँगा नहीं, छोड़ दूँगा ।</p>
+              <div className="h-4" />
+              <p>जब भी धूल दिखेगी रिश्तों पर मेरे ..</p>
+              <p className="text-sky-200/80">उसे फूकूँगा एक बार, फिर तोड़ दूँगा ।</p>
+              <div className="h-4" />
+              <p>मुझे मारने की ज़ुर्रत तो फ़ज़ूल है,</p>
+              <p className="text-sky-200/80">एक गोली हो जो जाँ लेले, मैं दो लूँगा ।</p>
+            </PoemCard>
+
+            <PoemCard title="मेरे साहिर." delay={0.3}>
+              <p>तेरे हिस्से का साहिर सबब जो बचा हुआ है</p>
+              <p className="text-sky-200/80">हम इसे एक ज़माने तक ज़िंदा रखेंगे।</p>
+              <div className="h-4" />
+              <p>मेरे जनाज़े में जो परेशान लग रहे थे</p>
+              <p className="text-sky-200/80">कह रहे हैं, पिंजरे में कोई नया परिंदा रखेंगे।</p>
+              <div className="h-4" />
+              <p>मर गए पर चिल्ला रही है ख़ामोशी,।२।</p>
+              <p className="text-sky-200/80">इतना न पूछ सका, हमें कब विदा करेंगे।</p>
+            </PoemCard>
           </div>
 
           {/* Featured Long Poem */}
@@ -1010,6 +1046,101 @@ const MindspaceView = () => {
             <p className="text-sky-200/80">For they search for cracks in the moon instead.</p>
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
+
+          <PoemCard title="नई जगह है" featured>
+            <p>नई जगह है,</p>
+            <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
+            <p>लिपटने को कुछ,</p>
+            <p className="text-sky-200/80">एक कोना मेरे गाँव से बस कम लगता है।</p>
+            <p>दिन गुज़रता रहा</p>
+            <p className="text-sky-200/80">एक अंजान ख़याल के साथ,</p>
+            <p>मेरी हँसी को</p>
+            <p className="text-sky-200/80">ये अज़नवी मेरा ज़ख़्म कहता है।</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>वो एक ख़याल</p>
+            <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+            <p>जैसे सड़क से उठाया</p>
+            <p className="text-sky-200/80">किसी ग़ैर का हम-ग़म लगता है।</p>
+            <p>किसने मोड़ा है</p>
+            <p className="text-sky-200/80">सच का स्वाद</p>
+            <p>कड़वाहट की ओर,</p>
+            <p className="text-sky-200/80">जो खड़ा है मरहम लिए,</p>
+            <p>वो भी बेरहम लगता है।</p>
+            <p>अजीब सी एक जगह है</p>
+            <p className="text-sky-200/80">शहर नाम का उस तरफ़,</p>
+            <p>वहाँ ख़ुशियाँ जैसे मरा हुआ</p>
+            <p className="text-sky-200/80">कोई वहम लगता है।</p>
+            <p>फिर एक रात</p>
+            <p className="text-sky-200/80">टहलते हुए</p>
+            <p>चाँद को निहारते,</p>
+            <p className="text-sky-200/80">ये सवाल पूछा मन ने…,</p>
+            <p>अच्छा,</p>
+            <p className="text-sky-200/80">एक पत्थर को</p>
+            <p>एक मिसाल होने में,</p>
+            <p>आख़िर…?</p>
+            <p>कितना ज़नम लगता है?</p>
+            <p>ज़हन के किसी कोने से</p>
+            <p>चिल्लाती एक आवाज़ आती है—</p>
+            <p className="text-sky-200/80">मरते हैं लोग,</p>
+            <p>पत्थर बेज़ान होते हैं।</p>
+            <p className="text-sky-200/80">पत्थर ही बताएगा</p>
+            <p>मरे रहने में</p>
+            <p>कितना संयम लगता है?</p>
+            <p>सवाल फिर ये भी कि</p>
+            <p className="text-sky-200/80">अगर मरते हैं लोग</p>
+            <p>झूठी क़समों के</p>
+            <p>सिरहाने आकर,</p>
+            <p>तो फिर एक जीवन को</p>
+            <p>जीने भर में</p>
+            <p>ये इतना इल्म</p>
+            <p>क्यों लगता है?</p>
+            <p>और अचानक</p>
+            <p>ज़हन शांत।</p>
+            <p>एक कारण,</p>
+            <p>एक जवाब,</p>
+            <p>और एक कोना ढूँढते हुए,</p>
+            <p className="text-sky-200/80">मानो एक बोझ को</p>
+            <p>एक कंधे से</p>
+            <p>दूसरे कंधे पर</p>
+            <p>सरियाते हुए</p>
+            <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
+            <p>"अरे!</p>
+            <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
+            <p>कहाँ कोई वहम बचता है।</p>
+            <p className="text-sky-200/80">ना किसी इल्म की है ज़रूरत—</p>
+            <p>सर उठाओ!</p>
+            <p className="text-sky-200/80">क्यों शर्म लगता है?</p>
+            <p>इस जीवन को काटना है</p>
+            <p className="text-sky-200/80">तो सोच के आँगन से</p>
+            <p>निकल जाना—बहार।</p>
+            <p className="text-sky-200/80">पर गर जीना हो,</p>
+            <p>तो सोच से सिमट कर सुनना —</p>
+            <p className="text-sky-200/80">एक टुकड़ा काग़ज़ का,</p>
+            <p>एक क़लम लगता है।</p>
+            <p className="text-sky-200/80">एक सड़क कील का,</p>
+            <p>और बस</p>
+            <p>इक क़दम लगता है।"</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+
+          <PoemCard title="Galatfehmi {गलतफहमी}">
+            <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
+            <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
+            <div className="h-4" />
+            <p className="text-sky-200/80">baahon me bharkar samandar puchta hai aman se katra</p>
+            <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
+            <p className="text-sky-200/80">aazad Shah-Anshan !</p>
+            <div className="h-4" />
+            <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
+            <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
+            <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+          </PoemCard>
+        </div>
+
+        {/* Poetic Narration Audio Access Block */}
+        <div className="mt-32">
+          <MusicSection audioMode={audioMode} setAudioMode={setAudioMode} />
         </div>
       </div>
     </>
@@ -1020,11 +1151,13 @@ const MusicCard: React.FC<{
   title: string;
   artist: string;
   mood: string;
+  url: string;
   icon: React.ReactNode;
   color: string;
-  isActive?: boolean;
-}> = ({ title, artist, mood, icon, color, isActive }) => {
-  const [isPlaying, setIsPlaying] = React.useState(false);
+}> = ({ title, artist, mood, url, icon, color }) => {
+  const { currentAudio, playAudio, pauseAudio, resumeAudio } = useStore();
+  const isThisActive = currentAudio.url === url;
+  const isPlaying = isThisActive && currentAudio.isPlaying;
 
   const colors = {
     sky: 'from-sky-500/20 to-sky-500/5 border-sky-500/20 text-sky-400',
@@ -1039,7 +1172,13 @@ const MusicCard: React.FC<{
     <motion.div
       whileHover={{ y: -5, scale: 1.02 }}
       className={`glass rounded-[2rem] p-6 border bg-gradient-to-br ${activeColor} relative overflow-hidden group cursor-pointer`}
-      onClick={() => setIsPlaying(!isPlaying)}
+      onClick={() => {
+        if (isThisActive) {
+          isPlaying ? pauseAudio() : resumeAudio();
+        } else {
+          playAudio(url, title, artist, url);
+        }
+      }}
     >
       <div className="flex items-center gap-6 relative z-10">
         <motion.div
@@ -1087,7 +1226,9 @@ const MusicCard: React.FC<{
   );
 };
 
-const MusicSection: React.FC = () => {
+const MusicSection: React.FC<{ audioMode: 'curated' | 'narration', setAudioMode: (m: 'curated' | 'narration') => void }> = ({ audioMode, setAudioMode }) => {
+  const songs = useStore(state => state.songs);
+
   return (
     <div className="mb-32 space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -1109,6 +1250,21 @@ const MusicSection: React.FC = () => {
           </motion.h3>
         </div>
 
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => setAudioMode('curated')}
+            className={`px-6 py-4 rounded-2xl border flex items-center gap-3 transition-all font-bold uppercase tracking-widest text-[10px] ${audioMode === 'curated' ? 'bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
+          >
+            <Music size={16} /> Sonic Archives
+          </button>
+          <button
+            onClick={() => setAudioMode('narration')}
+            className={`px-6 py-4 rounded-2xl border flex items-center gap-3 transition-all font-bold uppercase tracking-widest text-[10px] ${audioMode === 'narration' ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
+          >
+            <Headphones size={16} /> Poetic Narration (EN)
+          </button>
+        </div>
+
         <div className="flex gap-4">
           <button className="p-4 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
             <SkipBack size={20} />
@@ -1123,34 +1279,80 @@ const MusicSection: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MusicCard
-          title="Sufi Echoes"
-          artist="Bulle Shah Flow"
-          mood="Spiritual"
-          color="sky"
-          icon={<Wind size={40} />}
-        />
-        <MusicCard
-          title="Neural Calm"
-          artist="Mindfulness"
-          mood="Deep Focus"
-          color="violet"
-          icon={<Zap size={40} />}
-        />
-        <MusicCard
-          title="Sahir's Pulse"
-          artist="Desert Winds"
-          mood="Melancholic"
-          color="rose"
-          icon={<Flame size={40} />}
-        />
-        <MusicCard
-          title="The Aman Flow"
-          artist="Infinite Void"
-          mood="Multidimensional"
-          color="amber"
-          icon={<Headphones size={40} />}
-        />
+        {audioMode === 'curated' ? (
+          <>
+            {/* Static Curated Songs */}
+            <MusicCard
+              title="Sufi Echoes"
+              artist="Bulle Shah Flow"
+              mood="Spiritual"
+              color="sky"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+              icon={<Wind size={40} />}
+            />
+            <MusicCard
+              title="Neural Calm"
+              artist="Mindfulness"
+              mood="Deep Focus"
+              color="violet"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+              icon={<Zap size={40} />}
+            />
+            <MusicCard
+              title="Sahir's Pulse"
+              artist="Desert Winds"
+              mood="Melancholic"
+              color="rose"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+              icon={<Flame size={40} />}
+            />
+            <MusicCard
+              title="The Aman Flow"
+              artist="Infinite Void"
+              mood="Multidimensional"
+              color="amber"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+              icon={<Headphones size={40} />}
+            />
+
+            {/* User Uploaded Songs */}
+            {songs.map((song, idx) => (
+              <MusicCard
+                key={song.id}
+                title={song.title}
+                artist={song.description || "Aman Kumar Singh"}
+                mood="Archive"
+                color={['sky', 'violet', 'rose', 'amber'][idx % 4] as any}
+                url={song.url}
+                icon={<Music size={40} />}
+              />
+            ))}
+          </>
+        ) : (
+          <>
+            {/* English Narration Cards */}
+            <MusicCard
+              title="The English Anthology"
+              artist="Sikandar Poetics"
+              mood="Narrative"
+              color="amber"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" // Placeholder for narration
+              icon={<Volume2 size={40} />}
+            />
+            <MusicCard
+              title="Dastar & Shore"
+              artist="English Translation"
+              mood="Philosophical"
+              color="sky"
+              url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" // Placeholder
+              icon={<Mic2 size={40} />}
+            />
+            <div className="md:col-span-2 glass rounded-[2rem] p-8 border border-amber-400/20 bg-amber-400/5 flex flex-col justify-center">
+              <h4 className="text-amber-400 font-bold uppercase tracking-widest text-xs mb-4">Coming Soon</h4>
+              <p className="text-slate-400 text-sm leading-relaxed">We are currently recording the full English narration for all poetries. Each piece will be accompanied by a dedicated English voice-over exploring the depths of Sikandar's resonance.</p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

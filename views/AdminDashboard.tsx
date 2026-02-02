@@ -453,12 +453,20 @@ const AdminDashboard = ({ onClose }: AdminDashboardProps) => {
 
                                     <button
                                         onClick={() => {
-                                            const audio = new Audio(m.audioUrl);
-                                            audio.play().catch(e => console.warn("Audio playback failed:", e));
+                                            const { playAudio, pauseAudio, resumeAudio, currentAudio } = useStore.getState();
+                                            if (currentAudio.url === m.audioUrl) {
+                                                currentAudio.isPlaying ? pauseAudio() : resumeAudio();
+                                            } else {
+                                                playAudio(m.id, "Neural Transmission", "Encrypted Sequence", m.audioUrl);
+                                            }
                                         }}
                                         className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-sky-400 hover:text-black border border-white/10 hover:border-transparent py-4 rounded-2xl transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
-                                        <Play size={14} fill="currentColor" /> Play Transmission
+                                        {useStore.getState().currentAudio.url === m.audioUrl && useStore.getState().currentAudio.isPlaying ? (
+                                            <><Pause size={14} fill="currentColor" /> Stop Sequence</>
+                                        ) : (
+                                            <><Play size={14} fill="currentColor" /> Play Transmission</>
+                                        )}
                                     </button>
                                 </div>
                             ))}
@@ -682,12 +690,20 @@ const AdminDashboard = ({ onClose }: AdminDashboardProps) => {
                                         <div className="flex items-center gap-6">
                                             <button
                                                 onClick={() => {
-                                                    const audio = new Audio(song.url);
-                                                    audio.play();
+                                                    const { playAudio, pauseAudio, resumeAudio, currentAudio } = useStore.getState();
+                                                    if (currentAudio.url === song.url) {
+                                                        currentAudio.isPlaying ? pauseAudio() : resumeAudio();
+                                                    } else {
+                                                        playAudio(song.id, song.title, song.description || "Aman Kumar Singh", song.url);
+                                                    }
                                                 }}
                                                 className="flex-1 bg-white/5 hover:bg-sky-400 hover:text-black py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border border-white/10 hover:border-transparent"
                                             >
-                                                <Play size={14} fill="currentColor" /> Preview Transmission
+                                                {useStore.getState().currentAudio.url === song.url && useStore.getState().currentAudio.isPlaying ? (
+                                                    <><Pause size={14} fill="currentColor" /> Stop Transmission</>
+                                                ) : (
+                                                    <><Play size={14} fill="currentColor" /> Preview Transmission</>
+                                                )}
                                             </button>
                                             <div className="text-right">
                                                 <div className="text-[10px] text-sky-300 font-mono">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
