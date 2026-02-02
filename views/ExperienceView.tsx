@@ -109,6 +109,15 @@ const experiences = [
 
 const ExperienceView: React.FC = () => {
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMousePos({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        });
+    };
 
     return (
         <section className="relative w-full py-32 px-4 md:px-10 overflow-hidden" id="experience">
@@ -157,28 +166,38 @@ const ExperienceView: React.FC = () => {
                                 viewport={{ once: true }}
                                 className="relative md:pl-24"
                                 onClick={() => setExpandedId(isExpanded ? null : exp.id)}
+                                onMouseMove={handleMouseMove}
                             >
                                 {/* Timeline Dot (Desktop) */}
                                 <div className={`hidden md:flex absolute left-[27px] top-8 w-3 h-3 rounded-full border border-black ${exp.bg.replace('/10', '/50')} shadow-[0_0_20px_currentColor] z-10`} />
 
                                 <motion.div
                                     layout
-                                    className={`group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl cursor-pointer overflow-hidden transition-colors duration-500`}
-                                    whileHover={{
-                                        scale: 1.01,
-                                        backgroundColor: "rgba(255, 255, 255, 0.03)",
-                                        borderColor: "rgba(255, 255, 255, 0.1)"
-                                    }}
+                                    whileHover={{ scale: 1.01 }}
+                                    className={`group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl cursor-pointer overflow-hidden transition-all duration-500 hover:border-white/20`}
                                 >
-                                    {/* Hover Glow Effect */}
-                                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r ${exp.bg} blur-2xl -z-10`} />
+                                    {/* Spotlight implementation */}
+                                    <div
+                                        className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                                        style={{
+                                            background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, ${exp.color.replace('text-', 'rgba(').replace('-400', ', 0.15)')}, transparent 60%)`.replace('rgba(sky', 'rgba(56, 189, 248').replace('rgba(red', 'rgba(248, 113, 113').replace('rgba(amber', 'rgba(251, 191, 36').replace('rgba(emerald', 'rgba(52, 211, 153').replace('rgba(orange', 'rgba(251, 146, 60')
+                                        }}
+                                    />
+
+                                    {/* Hover Glow Effect (Backlight) */}
+                                    <div
+                                        className="absolute -inset-20 opacity-0 group-hover:opacity-30 transition-opacity duration-700 blur-[100px] -z-20 pointer-events-none"
+                                        style={{
+                                            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, ${exp.color.replace('text-', 'rgba(').replace('-400', ', 0.4)')}, transparent 70%)`.replace('rgba(sky', 'rgba(56, 189, 248').replace('rgba(red', 'rgba(248, 113, 113').replace('rgba(amber', 'rgba(251, 191, 36').replace('rgba(emerald', 'rgba(52, 211, 153').replace('rgba(orange', 'rgba(251, 146, 60')
+                                        }}
+                                    />
 
                                     {/* Active Glow Effect */}
                                     {isExpanded && (
-                                        <div className={`absolute inset-0 opacity-20 bg-gradient-to-br ${exp.bg} blur-3xl -z-10`} />
+                                        <div className={`absolute -inset-32 opacity-20 bg-gradient-to-br ${exp.bg} blur-[150px] -z-20`} />
                                     )}
 
-                                    <div className="flex flex-col lg:flex-row gap-8 lg:items-start justify-between">
+                                    <div className="flex flex-col lg:flex-row gap-8 lg:items-start justify-between relative z-10">
                                         {/* Left Content */}
                                         <div className="flex-1 space-y-4">
                                             <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -252,7 +271,7 @@ const ExperienceView: React.FC = () => {
                                                 <span>{exp.location}</span>
                                             </div>
 
-                                            <div className="hidden lg:flex mt-auto justify-end">
+                                            <div className="hidden lg:flex mt-auto justify-end relative z-10">
                                                 <motion.div
                                                     animate={{ rotate: isExpanded ? 180 : 0 }}
                                                     className={`p-2 rounded-full bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-white/10 transition-colors`}
